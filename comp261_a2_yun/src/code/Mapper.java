@@ -57,8 +57,9 @@ public class Mapper extends GUI {
 
     @Override
     protected void redraw(Graphics g) {
-        if (graph != null)
+        if (graph != null) {
             graph.draw(g, getDrawingAreaDimension(), origin, scale);
+        }
     }
 
     @Override
@@ -174,18 +175,17 @@ public class Mapper extends GUI {
 
     @Override
     protected void onAStarSearch() {
-        // TODO Auto-generated method stub
-
         // not ready for the AStar search
         if (startNode == null || targetNode == null) {
-            System.err.println(
-                    "Not ready for the Astar search, please specifiy the start Node "
-                               + "and the target Node.");
+            String errorMessString = "Not ready for the Astar search, please specifiy "
+                                     + "the start Node and the target Node.";
+            System.err.println(errorMessString);
+            getTextOutputArea().setText(errorMessString);
             return;
         }
         // implement the algorthim
 
-        // finish the A star search, so reset the starNOde and the target Node
+        // finish the A star search, so reset the starNode and the target Node
         startNode = null;
         targetNode = null;
 

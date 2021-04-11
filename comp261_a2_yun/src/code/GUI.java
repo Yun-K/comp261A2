@@ -378,14 +378,12 @@ public abstract class GUI {
         navigation.add(out);
         navigation.add(north);
         navigation.add(in);
-        // add aStar button in the first row
-        navigation.add(aStar);
+        navigation.add(aStar);// add aStar button in the first row
 
         navigation.add(west);
         navigation.add(south);
         navigation.add(east);
-        // add aPts button in the second row
-        navigation.add(aPs);
+        navigation.add(aPs); // add aPts button in the second row
 
         controls.add(navigation);
         controls.add(Box.createRigidArea(new Dimension(15, 0)));
