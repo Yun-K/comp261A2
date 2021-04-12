@@ -28,6 +28,11 @@ public class Road {
     public void addSegment(Segment seg) {
         components.add(seg);
     }
+
+    @Override
+    public String toString() {
+        return "Road [roadID=" + roadID + ", name=" + name + ", city=" + city + "]";
+    }
 }
 
 // code for COMP261 assignments
