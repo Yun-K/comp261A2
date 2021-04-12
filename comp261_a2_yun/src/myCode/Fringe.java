@@ -13,7 +13,7 @@ import code.*;
  * @author Yun Zhou 300442776
  * @version
  */
-public class Fringe {
+public class Fringe implements Comparable<Fringe> {
 
     /**
      * current_node:the current node.
@@ -68,6 +68,7 @@ public class Fringe {
      *            the Fringe to compare
      * @return
      */
+    @Override
     public int compareTo(Fringe otherFringe) {
         Fringe thisFringe = this;
         if (thisFringe.total_estimated_cost < otherFringe.total_estimated_cost) {
