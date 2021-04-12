@@ -22,14 +22,66 @@ public class Node {
 
     public final Collection<Segment> segments;
 
+    private Set<Segment> outGoSegments, incomingSegments;
+
     public Node(int nodeID, double lat, double lon) {
         this.nodeID = nodeID;
         this.location = Location.newFromLatLon(lat, lon);
         this.segments = new HashSet<Segment>();
+        // set up the outgoing and incoming segments
+        this.outGoSegments = new HashSet<Segment>();
+        this.incomingSegments = new HashSet<Segment>();
     }
 
     public void addSegment(Segment seg) {
         segments.add(seg);
+    }
+
+    /**
+     * Description: <br/>
+     * Return the collection of the outgoing segments of the node object.
+     * 
+     * @author Yun Zhou
+     * @return the collection of the outgoing segments of the node object
+     */
+    public Collection<Segment> getOutGoingSegments() {
+        // if it's already initialized, then just return it
+        if (!this.outGoSegments.isEmpty()) {
+            return this.outGoSegments;
+        }
+
+        Node currentNode = this;
+        this.outGoSegments = new HashSet<Segment>();
+        for (Segment segment : segments) {
+            if (currentNode.equals(segment.start)) {
+                outGoSegments.add(segment);
+            }
+        }
+        return outGoSegments;
+
+    }
+
+    /**
+     * Description: <br/>
+     * Return the collection of the incoming segments of the node object
+     * 
+     * @author Yun Zhou
+     * @return the collection of the incoming segments of the node object
+     */
+    public Collection<Segment> getIncomingSegments() {
+        // if it's already initialized, then just return it
+        if (!this.incomingSegments.isEmpty()) {
+            return this.incomingSegments;
+        }
+        Node currentNode = this;
+        this.incomingSegments = new HashSet<Segment>();
+        for (Segment segment : segments) {
+            if (currentNode.equals(segment.end)) {
+                incomingSegments.add(segment);
+            }
+        }
+        return incomingSegments;
+
     }
 
     public void draw(Graphics g, Dimension area, Location origin, double scale) {
@@ -55,6 +107,50 @@ public class Node {
             str += e + ", ";
         }
         return str.substring(0, str.length() - 2);
+    }
+
+    /**
+     * Briefly describe the feature of the function:
+     * 
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((location == null) ? 0 : location.hashCode());
+        result = prime * result + nodeID;
+        return result;
+    }
+
+    /**
+     * Briefly describe the feature of the function:
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Node other = (Node) obj;
+        if (location == null) {
+            if (other.location != null) {
+                return false;
+            }
+        } else if (!location.equals(other.location)) {
+            return false;
+        }
+        if (nodeID != other.nodeID) {
+            return false;
+        }
+        return true;
     }
 }
 
