@@ -7,6 +7,7 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -21,6 +22,9 @@ public class Node {
 
     /** whether this node is visited or not */
     private boolean isVisited = false;
+
+    /** the depth of the Node, for Articulation Points Algorithm use */
+    private int depth = Integer.MAX_VALUE;
 
     /**
      * there are lots of node neighbours, so the previous node is the node before it reaches to
@@ -79,9 +83,9 @@ public class Node {
      * @author Yun Zhou
      * @return the collection of the outgoing segments of the node object
      */
-    public List<Segment> getOutGoingSegments() {
+    public Set<Segment> getOutGoingSegments() {
 
-        List<Segment> outGoSegments = new ArrayList<Segment>();
+        Set<Segment> outGoSegments = new LinkedHashSet<Segment>();
 
         Node currentNode = this;
         for (Segment segment : segments) {
@@ -244,6 +248,25 @@ public class Node {
         }
         // TODO Auto-generated method stub
         return nodes_nei;
+    }
+
+    /**
+     * Get the depth.
+     *
+     * @return the depth
+     */
+    public int getDepth() {
+        return depth;
+    }
+
+    /**
+     * Set the depth.
+     *
+     * @param depth
+     *            the depth to set
+     */
+    public void setDepth(int depth) {
+        this.depth = depth;
     }
 }
 

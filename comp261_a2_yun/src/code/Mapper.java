@@ -328,28 +328,33 @@ public class Mapper extends GUI {
              * for nodes:
              */
             // add it at the begining of the linkedlist
+            // since it's from targetNode to the startNOde
             path_nodes.addFirst(prev_node);
-            this.graph.setHighlight(prev_node); // hightlight Nodes
+
+            // not work since the restriction of the provided algorthim
+            // this.graph.setHighlight(prev_node);
 
             /*
-             * for segments:
+             * for segments and roads:
              */
             Node currentNode = prev_node;
-
             prev_node = prev_node.getPreviousNode(); // set up the previous node,it's also set
                                                      // up the while loop condition
-
             if (prev_node == null) {
+                // reaches the startNOde, break the loop
                 break;
             }
             // find the weigh which is the length of the segments
             double lowestWeight = findSegmentWeight(prev_node, currentNode);
             total_distance += lowestWeight;
+            // add corresponding element into the linkedList
             path_segments.addFirst(this.lowestWeightSegment);
             path_roads.addFirst(this.lowestWeightSegment.road);
         }
         this.graph.setHighlight(path_roads);// highlight the roads
         this.graph.setHighlight(path_segments);// highlight the segment
+
+        this.graph.setHighlight(path_nodes);// highlight nodes
 
         /*
          * Set up the output string, which includes roadNames, segment length etc. For testing
@@ -365,14 +370,13 @@ public class Mapper extends GUI {
 
         }
 
-        outputString += "\nTotal distance = " + String.format("%.2f km", total_distance) + "";
+        outputString += "\nTotal distance = " + String.format("%.2f km", total_distance);
         getTextOutputArea().setText(outputString);
 
     }
 
     @Override
     protected void onAPs() {
-        // TODO Auto-generated method stub
 
     }
 

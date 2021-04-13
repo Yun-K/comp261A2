@@ -80,6 +80,17 @@ public class Graph {
             highlightedNode.draw(g2, screen, origin, scale);
         }
 
+        if (!highlightedNodes.isEmpty()) {
+            for (int i = 0; i < highlightedNodes.size(); i++) {
+                g2.setColor(Color.MAGENTA);
+                Node node = highlightedNodes.get(i);
+                if (i == 0 || i == highlightedNodes.size() - 1) {
+                    g2.setColor(Color.CYAN);
+                }
+                node.draw(g2, screen, origin, scale);
+            }
+        }
+
     }
 
     public void setHighlight(Node node) {
@@ -92,9 +103,15 @@ public class Graph {
 
     Collection<Segment> highlightedSegments = new HashSet<>();
 
+    LinkedList<Node> highlightedNodes = new LinkedList<Node>();
+
     public void setHighlight(List<Segment> path_segments) {
         this.highlightedSegments = path_segments;
 
+    }
+
+    public void setHighlight(LinkedList<Node> path_nodes) {
+        this.highlightedNodes = path_nodes;
     }
 
 }
