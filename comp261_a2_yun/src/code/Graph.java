@@ -1,13 +1,17 @@
 package code;
 
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,7 +52,7 @@ public class Graph {
         for (Segment s : segments)
             s.draw(g2, origin, scale);
 
-        // draw the segments of all highlighted roads.
+        // draw the segments of all highlighted roads, if the target node is exist
         g2.setColor(Mapper.HIGHLIGHT_COLOUR);
         g2.setStroke(new BasicStroke(3));
         for (Road road : highlightedRoads) {
@@ -57,16 +61,25 @@ public class Graph {
             }
         }
 
+        // draw the segments of all highlighted segments, if the target node is exist
+        if (!highlightedSegments.isEmpty()) {
+            g2.setColor(Color.PINK);
+            for (Segment segment : highlightedSegments) {
+                segment.draw(g2, origin, scale);
+            }
+
+        }
         // draw all the nodes.
         g2.setColor(Mapper.NODE_COLOUR);
-        for (Node n : nodes.values())
+        for (Node n : nodes.values()) {
             n.draw(g2, screen, origin, scale);
-
+        }
         // draw the highlighted node, if it exists.
         if (highlightedNode != null) {
             g2.setColor(Mapper.HIGHLIGHT_COLOUR);
             highlightedNode.draw(g2, screen, origin, scale);
         }
+
     }
 
     public void setHighlight(Node node) {
@@ -76,6 +89,14 @@ public class Graph {
     public void setHighlight(Collection<Road> roads) {
         this.highlightedRoads = roads;
     }
+
+    Collection<Segment> highlightedSegments = new HashSet<>();
+
+    public void setHighlight(List<Segment> path_segments) {
+        this.highlightedSegments = path_segments;
+
+    }
+
 }
 
 // code for COMP261 assignments

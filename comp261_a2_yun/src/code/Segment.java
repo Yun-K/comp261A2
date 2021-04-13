@@ -46,6 +46,11 @@ public class Segment {
             g.drawLine(p.x, p.y, q.x, q.y);
         }
     }
+
+    @Override
+    public String toString() {
+        return " startNodeID=" + start.getNodeID() + ", endNodeID=" + end.getNodeID() + "]";
+    }
 }
 
 // code for COMP261 assignments

@@ -8,6 +8,11 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.PriorityQueue;
+import java.util.Queue;
+
+import myCode.Fringe;
 
 /**
  * This is the main class for the mapping program. It extends the GUI abstract class and
@@ -39,7 +44,7 @@ public class Mapper extends GUI {
     public static final double MIN_ZOOM = 1, MAX_ZOOM = 200;
 
     // how far away from a node you can click before it isn't counted.
-    public static final double MAX_CLICKED_DISTANCE = 0.15;
+    public static final double MAX_CLICKED_DISTANCE = 0.15 + 999;
 
     // these two define the 'view' of the program, ie. where you're looking and
     // how zoomed in you are.
@@ -53,7 +58,13 @@ public class Mapper extends GUI {
     private Trie trie;
 
     /** for the AStartSearch */
-    private Node startNode = null, targetNode = null;
+    public static Node startNode = null, targetNode = null;
+
+    /** whether the path from startNode and targetNode is Found or not */
+    boolean isFound_path = false;
+
+    /** for highlighting segments use */
+    private Segment lowestWeightSegment = null;
 
     @Override
     protected void redraw(Graphics g) {
@@ -70,7 +81,7 @@ public class Mapper extends GUI {
         Node closest = null;
 
         for (Node node : graph.nodes.values()) {
-            double distance = clicked.distance(node.location);
+            double distance = clicked.distance(node.getLocation());
             if (distance < bestDist) {
                 bestDist = distance;
                 closest = node;
@@ -78,18 +89,22 @@ public class Mapper extends GUI {
         }
 
         // if it's close enough, highlight it and show some information.
-        if (clicked.distance(closest.location) < MAX_CLICKED_DISTANCE) {
+        if (clicked.distance(closest.getLocation()) < MAX_CLICKED_DISTANCE) {
             graph.setHighlight(closest);
             getTextOutputArea().setText(closest.toString());
         }
-
-        //
         if (startNode == null) {
             startNode = closest;
 
         } else {
             // we've already got the startNode, so it's the tragetNOde
             targetNode = closest;
+
+            onAStarSearch();
+            // finish the A star search, so reset the starNode and the target Node
+            startNode = null;
+            targetNode = null;
+            isFound_path = false;
         }
 
     }
@@ -128,14 +143,17 @@ public class Mapper extends GUI {
         // now build the string for display. we filter out duplicates by putting
         // it through a set first, and then combine it.
         Collection<String> names = new HashSet<>();
-        for (Road road : selected)
+        for (Road road : selected) {
             names.add(road.name);
+        }
         String str = "";
-        for (String name : names)
+        for (String name : names) {
             str += name + "; ";
+        }
 
-        if (str.length() != 0)
+        if (str.length() != 0) {
             str = str.substring(0, str.length() - 2);
+        }
         getTextOutputArea().setText(str);
     }
 
@@ -175,19 +193,180 @@ public class Mapper extends GUI {
 
     @Override
     protected void onAStarSearch() {
-        // not ready for the AStar search
+        // do the precondition check first
         if (startNode == null || targetNode == null) {
+            // not ready for the AStar search,return
             String errorMessString = "Not ready for the Astar search, please specifiy "
                                      + "the start Node and the target Node.";
-            System.err.println(errorMessString);
+            // System.err.println(errorMessString);
             getTextOutputArea().setText(errorMessString);
             return;
         }
-        // implement the algorthim
+        /*
+         * Initially all the nodes are unvisited, and the fringe has a single element
+         */
+        for (Node node : graph.nodes.values()) {
+            // reset the previous node and the status of the visited
+            node.setVisited(false);
+            node.setPreviousNode(null);
+        }
+        Queue<Fringe> fringesQueue = new PriorityQueue<Fringe>();
+        // assign the eculiden distance as the heuristic.(from the assignment handout)
+        double firstElement_total_estimated_cost = startNode.getLocation()
+                .distance(targetNode.getLocation());
+        fringesQueue.offer(new Fringe(startNode, null, 0, firstElement_total_estimated_cost));
+
+        /**
+         * loop through the fringe queue until find the path to the targetNode
+         */
+        while (!fringesQueue.isEmpty()) {
+            // extract the fringe object with lowest cost from the PriorityQueue
+            Fringe fringe_lowest = fringesQueue.poll();
+            Node currentNode = fringe_lowest.getCurrent_node();
+
+            if (!fringe_lowest.getCurrent_node().isVisited()) {
+                // Set node* as visited, and set node*.prev = prev*;
+                currentNode.setVisited(true);
+                currentNode.setPreviousNode(fringe_lowest.getPrev_node());
+                // it matches the targetNode, break
+                if (currentNode.equals(targetNode)) {
+                    this.isFound_path = true;
+                    break;
+                }
+
+                // loop through the outgoing node neighbours
+
+                for (Node outgoing_node : currentNode.getNeighbourNode()) {
+
+                    // for (Node outgoing_node : currentNode.getOutGoingNodes()) {
+
+                    if (!outgoing_node.isVisited()) {
+                        // assign the g(node)
+                        double startNodeToNeighbourCost_sofar = fringe_lowest.getCurrent_cost()
+                                + findSegmentWeight(currentNode, outgoing_node);
+                        // assigh the f(node).
+                        // (hint: f(node)=g(node)+h(Node))
+                        double total_estimated_cost = startNodeToNeighbourCost_sofar
+                                + outgoing_node.getLocation().distance(targetNode.getLocation());
+
+                        // every argument is ready, offer the new fringe object into the queue
+                        fringesQueue.offer(new Fringe(outgoing_node, currentNode,
+                                startNodeToNeighbourCost_sofar, total_estimated_cost));
+                    }
+                }
+            }
+
+        }
+
+        // isFound_path = true;
+        if (!isFound_path) {
+            String text = "Sorry, did NOT find the path from the startNode:\n\t "
+                          + startNode.toString()
+                          + "\n to the targetNode: \n\t" + targetNode.toString();
+            text += "\nSorry, did NOT find the path!!\nIt means either the group of startNode and targetNode is not connected\n\t"
+                    + "OR NO PATHS since the some roadSegment is one-way";
+            // System.err.println(text);
+            getTextOutputArea().setText(text);
+        }
+        // find the path,highlight the segment,node etc
+        else {
+            highLightAllNodes_Segments();
+
+        }
 
         // finish the A star search, so reset the starNode and the target Node
         startNode = null;
         targetNode = null;
+        isFound_path = false;
+
+    }
+
+    /**
+     * Description: <br/>
+     * Return the lowest segment length between startNode and targetNode. Also, this method
+     * will assign the field segment.
+     * 
+     * @author Yun Zhou
+     * @param startNode
+     * @param targetNode
+     * @return the lowest segment length between startNode and targetNode.
+     */
+    private double findSegmentWeight(Node startNode, Node targetNode) {
+        double weight = Double.POSITIVE_INFINITY;
+
+        // // loop through all the outgoing edges
+        // for (Segment seg : startNode.getOutGoingSegments()) {
+        // // if find the matched segemnts, compare it and assight the weight
+        // if (seg.end.equals(targetNode)) {
+        // if (seg.length < weight) {
+        // weight = seg.length;
+        // this.lowestWeightSegment = seg;
+        // }
+        // }
+        // }
+
+        for (Segment seg : startNode.segments) {
+            if (targetNode.segments.contains(seg)) {
+                weight = seg.length;
+                this.lowestWeightSegment = seg;
+            }
+        }
+
+        return weight;
+
+    }
+
+    private void highLightAllNodes_Segments() {
+        LinkedList<Node> path_nodes = new LinkedList<Node>();
+        LinkedList<Segment> path_segments = new LinkedList<Segment>();
+        LinkedList<Road> path_roads = new LinkedList<Road>();
+
+        double total_distance = 0.0;
+        Node prev_node = targetNode;// set the node
+        while (prev_node != null) {
+            /*
+             * for nodes:
+             */
+            // add it at the begining of the linkedlist
+            path_nodes.addFirst(prev_node);
+            this.graph.setHighlight(prev_node); // hightlight Nodes
+
+            /*
+             * for segments:
+             */
+            Node currentNode = prev_node;
+
+            prev_node = prev_node.getPreviousNode(); // set up the previous node,it's also set
+                                                     // up the while loop condition
+
+            if (prev_node == null) {
+                break;
+            }
+            // find the weigh which is the length of the segments
+            double lowestWeight = findSegmentWeight(prev_node, currentNode);
+            total_distance += lowestWeight;
+            path_segments.addFirst(this.lowestWeightSegment);
+            path_roads.addFirst(this.lowestWeightSegment.road);
+        }
+        this.graph.setHighlight(path_roads);// highlight the roads
+        this.graph.setHighlight(path_segments);// highlight the segment
+
+        /*
+         * Set up the output string, which includes roadNames, segment length etc. For testing
+         * purpose, can also includes the nodeID and RoadID
+         */
+        String outputString = "The route: \n";
+        int index = 0;
+        for (Segment segment : path_segments) {
+            index++;
+            outputString += index + ". " + segment.road.toString() + " " // +
+                                                                         // segment.toString()
+                            + " : " + String.format("%.2f km", segment.length) + "\n";
+
+        }
+
+        outputString += "\nTotal distance = " + String.format("%.2f km", total_distance) + "";
+        getTextOutputArea().setText(outputString);
 
     }
 

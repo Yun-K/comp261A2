@@ -1,10 +1,13 @@
 package code;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -16,25 +19,57 @@ import java.util.Set;
  */
 public class Node {
 
+    /** whether this node is visited or not */
+    private boolean isVisited = false;
+
+    /**
+     * there are lots of node neighbours, so the previous node is the node before it reaches to
+     * the current Node
+     */
+    private Node previousNode = null;
+
     public final int nodeID;
 
-    public final Location location;
+    private final Location location;
 
     public final Collection<Segment> segments;
 
-    private Set<Segment> outGoSegments, incomingSegments;
+    // /** the outgoing and incoming segments */
+    // private Set<Segment> outGoSegments, incomingSegments;
 
     public Node(int nodeID, double lat, double lon) {
         this.nodeID = nodeID;
         this.location = Location.newFromLatLon(lat, lon);
         this.segments = new HashSet<Segment>();
         // set up the outgoing and incoming segments
-        this.outGoSegments = new HashSet<Segment>();
-        this.incomingSegments = new HashSet<Segment>();
+        // this.outGoSegments = new HashSet<Segment>();
+        // this.incomingSegments = new HashSet<Segment>();
     }
 
     public void addSegment(Segment seg) {
         segments.add(seg);
+    }
+
+    public List<Node> getOutGoingNodes() {
+        List<Node> outgoing_neighbourNodes = new ArrayList<Node>();
+
+        for (Segment seg : getOutGoingSegments()) {
+            outgoing_neighbourNodes.add(seg.end);
+            // check
+            assert !seg.end.equals(this);
+        }
+        return outgoing_neighbourNodes;
+
+    }
+
+    public List<Node> getIncomingNodes() {
+        List<Node> incomingNOdes = new ArrayList<Node>();
+        for (Segment seg : getIncomingSegments()) {
+            incomingNOdes.add(seg.start);
+            // check
+            assert !seg.start.equals(this);
+        }
+        return incomingNOdes;
     }
 
     /**
@@ -44,18 +79,16 @@ public class Node {
      * @author Yun Zhou
      * @return the collection of the outgoing segments of the node object
      */
-    public Collection<Segment> getOutGoingSegments() {
-        // if it's already initialized, then just return it
-        if (!this.outGoSegments.isEmpty()) {
-            return this.outGoSegments;
-        }
+    public List<Segment> getOutGoingSegments() {
+
+        List<Segment> outGoSegments = new ArrayList<Segment>();
 
         Node currentNode = this;
-        this.outGoSegments = new HashSet<Segment>();
         for (Segment segment : segments) {
             if (currentNode.equals(segment.start)) {
                 outGoSegments.add(segment);
             }
+
         }
         return outGoSegments;
 
@@ -68,13 +101,10 @@ public class Node {
      * @author Yun Zhou
      * @return the collection of the incoming segments of the node object
      */
-    public Collection<Segment> getIncomingSegments() {
-        // if it's already initialized, then just return it
-        if (!this.incomingSegments.isEmpty()) {
-            return this.incomingSegments;
-        }
+    public Set<Segment> getIncomingSegments() {
+
+        Set<Segment> incomingSegments = new HashSet<Segment>();
         Node currentNode = this;
-        this.incomingSegments = new HashSet<Segment>();
         for (Segment segment : segments) {
             if (currentNode.equals(segment.end)) {
                 incomingSegments.add(segment);
@@ -92,6 +122,11 @@ public class Node {
             return;
 
         int size = (int) (Mapper.NODE_GRADIENT * Math.log(scale) + Mapper.NODE_INTERCEPT);
+
+        if (Mapper.targetNode == this) {
+            System.out.println("FUCK YEAAA");
+            g.setColor(Color.red);
+        }
         g.fillRect(p.x - size / 2, p.y - size / 2, size, size);
     }
 
@@ -110,24 +145,78 @@ public class Node {
     }
 
     /**
-     * Briefly describe the feature of the function:
-     * 
-     * @see java.lang.Object#hashCode()
+     * Get the isVisited.
+     *
+     * @return the isVisited
      */
+    public boolean isVisited() {
+        return isVisited;
+    }
+
+    /**
+     * Get the nodeID.
+     *
+     * @return the nodeID
+     */
+    public int getNodeID() {
+        return nodeID;
+    }
+
+    /**
+     * Get the location.
+     *
+     * @return the location
+     */
+    public Location getLocation() {
+        return location;
+    }
+
+    /**
+     * Get the segments.
+     *
+     * @return the segments
+     */
+    public Collection<Segment> getSegments() {
+        return segments;
+    }
+
+    /**
+     * Set the isVisited.
+     *
+     * @param isVisited
+     *            the isVisited to set
+     */
+    public void setVisited(boolean isVisited) {
+        this.isVisited = isVisited;
+    }
+
+    /**
+     * Get the previousNode.
+     *
+     * @return the previousNode
+     */
+    public Node getPreviousNode() {
+        return previousNode;
+    }
+
+    /**
+     * Set the previousNode.
+     *
+     * @param previousNode
+     *            the previousNode to set
+     */
+    public void setPreviousNode(Node previousNode) {
+        this.previousNode = previousNode;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((location == null) ? 0 : location.hashCode());
         result = prime * result + nodeID;
         return result;
     }
 
-    /**
-     * Briefly describe the feature of the function:
-     * 
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -140,17 +229,21 @@ public class Node {
             return false;
         }
         Node other = (Node) obj;
-        if (location == null) {
-            if (other.location != null) {
-                return false;
-            }
-        } else if (!location.equals(other.location)) {
-            return false;
-        }
         if (nodeID != other.nodeID) {
             return false;
         }
         return true;
+    }
+
+    public Set<Node> getNeighbourNode() {
+        Set<Node> nodes_nei = new HashSet<Node>();
+        for (Segment segment : segments) {
+            nodes_nei.add(segment.end);
+            nodes_nei.add(segment.start);
+
+        }
+        // TODO Auto-generated method stub
+        return nodes_nei;
     }
 }
 

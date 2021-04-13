@@ -31,7 +31,7 @@ public class Road {
 
     @Override
     public String toString() {
-        return "Road [roadID=" + roadID + ", name=" + name + ", city=" + city + "]";
+        return "Road [roadID=" + roadID + ", name=" + name + "]";
     }
 }
 
