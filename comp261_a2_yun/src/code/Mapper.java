@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import myCode.Fringe;
+import myCode.FringeArtPoint;
 
 /**
  * This is the main class for the mapping program. It extends the GUI abstract class and
@@ -70,6 +71,8 @@ public class Mapper extends GUI {
 
     /** for highlighting segments use */
     private Segment lowestWeightSegment = null;
+
+    public static final int INFINITY = Integer.MAX_VALUE;
 
     @Override
     protected void redraw(Graphics g) {
@@ -406,8 +409,8 @@ public class Mapper extends GUI {
             // reset the previous node, the visited to false ,the depth and the reachBack value
             node.setVisited(false);
             node.setPreviousNode(null);
-            node.setDepth(Integer.MAX_VALUE);
-            node.setReachBackValue(Integer.MAX_VALUE);
+            node.setDepth(INFINITY);
+            node.setReachBackValue(0);// MAX_VALUE);
             // // assign the root node, it's random selected
             // if (randomIndex == index) {
             // rootNode = node;
@@ -422,9 +425,10 @@ public class Mapper extends GUI {
         }
 
         for (Node rootNode : graph.nodes.values()) {
-            if (rootNode.getDepth() != Integer.MAX_VALUE) {
+            if (rootNode.getDepth() != INFINITY || rootNode.isVisited()) {
                 continue; // has visited, continue to check the next
             }
+
             // // for debug, it's used for the big graph since this group is isolated
             // // and easy to see the result, also this root node is the APoint
             // if (rootNode.getNodeID() != 20839) {
@@ -435,10 +439,9 @@ public class Mapper extends GUI {
              * implement the articulation Points algorthim
              */
             int subTreeNumber = 0;
-            rootNode.setDepth(0);
 
             for (Node neighNode : rootNode.getAllNeighbourNodes()) {
-                if (neighNode.getDepth() == Integer.MAX_VALUE) {
+                if (neighNode.getDepth() == INFINITY) {
                     iterativeAPts(neighNode, 1, rootNode);
                     subTreeNumber++;
                 }
@@ -464,15 +467,16 @@ public class Mapper extends GUI {
         getTextOutputArea().setText(outputString);
     }
 
-    private void iterativeAPts(Node neighbourNode, int depth, Node rootNode) {
-        Stack<Fringe> fringeStack = new Stack<Fringe>();
-        fringeStack.push(new Fringe(neighbourNode, depth, rootNode));
+    private void iterativeAPts(Node currentNode, int depth, Node rootNode) {
+        Stack<FringeArtPoint> fringeArtPStack = new Stack<FringeArtPoint>();
+        fringeArtPStack.push(new FringeArtPoint(currentNode, depth, rootNode));
 
         // repeat until the stack is empty
-        while (!fringeStack.isEmpty()) {
+        while (!fringeArtPStack.isEmpty()) {
 
             // assign variables
-            Fringe peekFringe = fringeStack.peek();// just peek, not pop the Fringe out
+            FringeArtPoint peekFringe = fringeArtPStack.peek();// just peek, not pop the Fringe
+                                                               // out
             Node neighNode_fromPeekFringe = peekFringe.getFirst_neighbourNode();
 
             // get the childrenNodes, the root node has already been removed
@@ -483,8 +487,8 @@ public class Mapper extends GUI {
 
             // the depth is still the MAX, it's the first visit,
             // set the reachBack to the depth
-            if (neighNode_fromPeekFringe.getDepth() == Integer.MAX_VALUE
-            // || !currentNeighbourNode_fromPeekFringe.isVisited()
+            if (neighNode_fromPeekFringe.getDepth() == INFINITY
+            // || !neighNode_fromPeekFringe.isVisited()
 
             ) {
 
@@ -493,21 +497,40 @@ public class Mapper extends GUI {
                 neighNode_fromPeekFringe.setDepth(peekFringe.getDepth());
                 neighNode_fromPeekFringe.setReachBackValue(peekFringe.getDepth());
                 // remove the root node from the ChildNodes
-                peekFringe.removeFromChildrenNodes(peekFringe.getRootNode());
                 // neighNode_fromPeekFringe.removeFromChildrenNodes(peekFringe.getRootNode());
+
+                // add to nodeStar children
+                neighNode_fromPeekFringe.childrenNodes = new ArrayList<Node>();
+                for (Segment s : neighNode_fromPeekFringe.segments) {
+                    if ((s.start.nodeID != peekFringe.getRootNode().nodeID
+                            && s.end.nodeID != peekFringe.getRootNode().nodeID)) { // add all
+                                                                                   // except
+                        // prent
+                        // segment has 2 nodes, add the node that isn't this one to
+                        // adjaentNodes
+                        if (!(s.start.nodeID == neighNode_fromPeekFringe.nodeID)) {
+                            neighNode_fromPeekFringe.childrenNodes.add(s.start);
+                        } else {
+                            neighNode_fromPeekFringe.childrenNodes.add(s.end);
+                        }
+                    }
+                }
             }
 
-            else if (!peekFringe.getChildNodes_of_firstNeighbourNode().isEmpty()) {
+            // else if (!peekFringe.getChildNodes_of_firstNeighbourNode().isEmpty()) {
+            else if (!neighNode_fromPeekFringe.getChildrenNodes().isEmpty()) {
+
                 // get and remove a child from CHildrenNodes_neighbour
                 // update the pointer
-                Node childNode = peekFringe.get_and_remove_a_node_from_children();
+                Node childNode = neighNode_fromPeekFringe.get_and_remove_a_node_from_children();
+                // Node childNode = neighNode_fromPeekFringe.childrenNodes.remove(0);
                 /*
                  * check whether this childNode has been visted before
                  */
 
                 // it's been visited before since the depth is still the infinity,
                 // update the reachBack value of the
-                if (childNode.getDepth() < Integer.MAX_VALUE
+                if (childNode.getDepth() < INFINITY
                 // ||
                 // childNode.isVisited()
                 ) {
@@ -524,15 +547,15 @@ public class Mapper extends GUI {
                 // push a new Fringe object into the fringeStack
                 else {
                     // increase the depth of this new Fringe instance
-                    fringeStack.push(new Fringe(childNode,
+                    fringeArtPStack.push(new FringeArtPoint(childNode,
                             peekFringe.getDepth() + 1, neighNode_fromPeekFringe));
                 }
 
             }
 
             else {
-                // if (!neighNode_fromPeekFringe.equals(neighbourNode)) {
-                if (neighNode_fromPeekFringe.getNodeID() != neighbourNode.getNodeID()) {
+                // if (!neighNode_fromPeekFringe.equals(currentNode)) {
+                if (neighNode_fromPeekFringe.getNodeID() != currentNode.getNodeID()) {
                     int minReachBack_rootNOde = Math.min(
                             neighNode_fromPeekFringe.getReachBackValue(),
                             peekFringe.getRootNode().getReachBackValue());
@@ -540,12 +563,11 @@ public class Mapper extends GUI {
                     peekFringe.getRootNode().setReachBackValue(minReachBack_rootNOde);
 
                     if (neighNode_fromPeekFringe
-                            .getReachBackValue() >= peekFringe.getRootNode()
-                                    .getDepth()) {
+                            .getReachBackValue() >= peekFringe.getRootNode().getDepth()) {
                         this.articulationPoints.add(peekFringe.getRootNode());
                     }
                 }
-                fringeStack.pop();
+                fringeArtPStack.pop();// pop out the fringe
             }
 
         }

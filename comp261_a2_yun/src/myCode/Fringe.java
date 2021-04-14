@@ -1,9 +1,8 @@
 package myCode;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
-import code.*;
+import code.Node;
 
 /**
  * Description: <br/>
@@ -61,12 +60,7 @@ public class Fringe implements Comparable<Fringe> {
         this.total_estimated_cost = total_estimated_cost;
     }
 
-    /** fields for the Articulation Points Algorithm */
-    private Node first_neighbourNode, rootNode;
-
-    private int depth;
-
-    private Collection<Node> childNodes_of_firstNeighbourNode;
+    private FringeArtPoint data = new FringeArtPoint();
 
     /**
      * A constructor. It construct a new instance of Fringe.
@@ -79,9 +73,9 @@ public class Fringe implements Comparable<Fringe> {
      * @param rootNode
      */
     public Fringe(Node first_neighbourNode, int depth, Node rootNode) {
-        this.first_neighbourNode = first_neighbourNode;
-        this.depth = depth;
-        this.rootNode = rootNode;
+        this.data.setFirst_neighbourNode(first_neighbourNode);
+        this.data.setDepth(depth);
+        this.data.setRootNode(rootNode);
         // set up the childNodes of the first_neighbourNode
         this.setChildNodes_of_firstNeighbourNode(first_neighbourNode.getChildrenNodes());
         // this.childNodes_of_firstNeighbourNode.remove(rootNode);
@@ -191,7 +185,7 @@ public class Fringe implements Comparable<Fringe> {
      * @return the first_neighbourNode
      */
     public Node getFirst_neighbourNode() {
-        return first_neighbourNode;
+        return data.getFirst_neighbourNode();
     }
 
     /**
@@ -200,7 +194,7 @@ public class Fringe implements Comparable<Fringe> {
      * @return the rootNode
      */
     public Node getRootNode() {
-        return rootNode;
+        return data.getRootNode();
     }
 
     /**
@@ -209,7 +203,7 @@ public class Fringe implements Comparable<Fringe> {
      * @return the depth
      */
     public int getDepth() {
-        return depth;
+        return data.getDepth();
     }
 
     /**
@@ -219,7 +213,7 @@ public class Fringe implements Comparable<Fringe> {
      *            the first_neighbourNode to set
      */
     public void setFirst_neighbourNode(Node first_neighbourNode) {
-        this.first_neighbourNode = first_neighbourNode;
+        this.data.setFirst_neighbourNode(first_neighbourNode);
     }
 
     /**
@@ -229,7 +223,7 @@ public class Fringe implements Comparable<Fringe> {
      *            the rootNode to set
      */
     public void setRootNode(Node rootNode) {
-        this.rootNode = rootNode;
+        this.data.setRootNode(rootNode);
     }
 
     /**
@@ -239,7 +233,7 @@ public class Fringe implements Comparable<Fringe> {
      *            the depth to set
      */
     public void setDepth(int depth) {
-        this.depth = depth;
+        this.data.setDepth(depth);
     }
 
     /**
@@ -248,16 +242,16 @@ public class Fringe implements Comparable<Fringe> {
      * @return the childNodes_of_firstNeighbourNode
      */
     public Collection<Node> getChildNodes_of_firstNeighbourNode() {
-        return childNodes_of_firstNeighbourNode;
+        return data.getChildNodes_of_firstNeighbourNode();
     }
 
     public Node get_and_remove_a_node_from_children() {
         Node node_toRemoveAndReturn = null;
-        for (Node node : this.childNodes_of_firstNeighbourNode) {
+        for (Node node : this.data.getChildNodes_of_firstNeighbourNode()) {
             node_toRemoveAndReturn = node;
             break;
         }
-        this.childNodes_of_firstNeighbourNode.remove(node_toRemoveAndReturn);
+        this.data.getChildNodes_of_firstNeighbourNode().remove(node_toRemoveAndReturn);
         return node_toRemoveAndReturn;
 
     }
@@ -270,12 +264,12 @@ public class Fringe implements Comparable<Fringe> {
      */
     public void setChildNodes_of_firstNeighbourNode(
             Collection<Node> childNodes_of_firstNeighbourNode) {
-        this.childNodes_of_firstNeighbourNode = childNodes_of_firstNeighbourNode;
+        this.data.setChildNodes_of_firstNeighbourNode(childNodes_of_firstNeighbourNode);
     }
 
     public void removeFromChildrenNodes(Node toRemove) {
         // TODO Auto-generated method stub
-        this.childNodes_of_firstNeighbourNode.remove(toRemove);
+        this.data.getChildNodes_of_firstNeighbourNode().remove(toRemove);
 
     }
 }

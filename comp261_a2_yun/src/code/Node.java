@@ -30,7 +30,7 @@ public class Node {
      * it represent the index of childNode's depth where this childNode can reachBack to the
      * group of the Parent Node
      */
-    private int reachBackValue = Integer.MAX_VALUE;
+    private int reachBackValue = 0;// Integer.MAX_VALUE;
 
     /**
      * there are lots of node neighbours, so the previous node is the node before it reaches to
@@ -38,7 +38,7 @@ public class Node {
      */
     private Node previousNode = null;
 
-    private Collection<Node> childrenNodes;
+    public List<Node> childrenNodes;
 
     public final int nodeID;
 
@@ -56,8 +56,17 @@ public class Node {
         // set up the outgoing and incoming segments
         // this.outGoSegments = new HashSet<Segment>();
         // this.incomingSegments = new HashSet<Segment>();
-        this.childrenNodes = new HashSet<Node>();
-        childrenNodes.addAll(getAllNeighbourNodes());// initially, the children==neighbours
+        // this.childrenNodes = getAllNeighbourNodes();// initially, the children==neighbours
+
+        this.childrenNodes = new ArrayList<Node>();
+        // add all adjacent NOdes from the segments
+        for (Segment segment : segments) {
+            childrenNodes.add(segment.end);
+            childrenNodes.add(segment.start);
+        }
+        childrenNodes.remove(this);// remove itself since the neighbour cannot be itself,
+                                   // much more easier, dont need to do the if check
+
     }
 
     public void addSegment(Segment seg) {
@@ -87,7 +96,7 @@ public class Node {
     }
 
     public Set<Node> getAllNeighbourNodes() {
-        Set<Node> allNeighbourNodes = new HashSet<Node>();
+        Set<Node> allNeighbourNodes = new LinkedHashSet<Node>();
         // add all adjacent NOdes from the segments
         for (Segment segment : segments) {
             allNeighbourNodes.add(segment.end);
@@ -109,13 +118,24 @@ public class Node {
      */
     public Collection<Node> removeFromChildrenNodes(Node node_toRemove) {
         this.childrenNodes.remove(node_toRemove);
-        // assert isRemoved;
+        assert childrenNodes.contains(node_toRemove) == false;
         return childrenNodes;
+    }
 
-        // Set<Node> allNeighbourNodes = this.getAllNeighbourNodes();
-        // boolean isRemoved = allNeighbourNodes.remove(node_toRemove);// remove the parent
-        // assert isRemoved;// do the postCondition Check to check whether it's removed or not
-        // return allNeighbourNodes;
+    public Node get_and_remove_a_node_from_children() {
+        if (childrenNodes.isEmpty() || childrenNodes == null) {
+            assert false;
+        }
+        return this.childrenNodes.remove(0);
+        // Node node_toRemoveAndReturn = null;
+        // for (Node node : this.childrenNodes) {
+        // node_toRemoveAndReturn = node;
+        // break;
+        // }
+        // this.childrenNodes.remove(node_toRemoveAndReturn);
+        // assert this.childrenNodes.contains(node_toRemoveAndReturn) == false;
+        // return node_toRemoveAndReturn;
+
     }
 
     /**
@@ -346,15 +366,6 @@ public class Node {
         return childrenNodes;
     }
 
-    /**
-     * Set the childrenNodes.
-     *
-     * @param childrenNodes
-     *            the childrenNodes to set
-     */
-    public void setChildrenNodes(Collection<Node> childrenNodes) {
-        this.childrenNodes = childrenNodes;
-    }
 }
 
 // code for COMP261 assignments
