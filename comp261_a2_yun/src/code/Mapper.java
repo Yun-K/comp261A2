@@ -6,11 +6,16 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.Random;
+import java.util.Set;
+import java.util.Stack;
 
 import myCode.Fringe;
 
@@ -202,6 +207,11 @@ public class Mapper extends GUI {
             getTextOutputArea().setText(errorMessString);
             return;
         }
+        if (startNode.equals(targetNode)) {
+            getTextOutputArea().setText("The targetNode and the startNode is the same!");
+            return;
+        }
+
         /*
          * Initially all the nodes are unvisited, and the fringe has a single element
          */
@@ -236,7 +246,7 @@ public class Mapper extends GUI {
 
                 // loop through the outgoing node neighbours
 
-                for (Node outgoing_node : currentNode.getNeighbourNode()) {
+                for (Node outgoing_node : currentNode.getAllNeighbourNodes()) {
 
                     // for (Node outgoing_node : currentNode.getOutGoingNodes()) {
 
@@ -244,7 +254,7 @@ public class Mapper extends GUI {
                         // assign the g(node)
                         double startNodeToNeighbourCost_sofar = fringe_lowest.getCurrent_cost()
                                 + findSegmentWeight(currentNode, outgoing_node);
-                        // assigh the f(node).
+                        // assign the f(node).
                         // (hint: f(node)=g(node)+h(Node))
                         double total_estimated_cost = startNodeToNeighbourCost_sofar
                                 + outgoing_node.getLocation().distance(targetNode.getLocation());
@@ -351,10 +361,10 @@ public class Mapper extends GUI {
             path_segments.addFirst(this.lowestWeightSegment);
             path_roads.addFirst(this.lowestWeightSegment.road);
         }
-        this.graph.setHighlight(path_roads);// highlight the roads
+        // this.graph.setHighlight(path_roads);// highlight the roads
         this.graph.setHighlight(path_segments);// highlight the segment
 
-        this.graph.setHighlight(path_nodes);// highlight nodes
+        this.graph.setHighlight_nodes(path_nodes);// highlight nodes
 
         /*
          * Set up the output string, which includes roadNames, segment length etc. For testing
@@ -375,9 +385,170 @@ public class Mapper extends GUI {
 
     }
 
+    /** for the Articulation Points Algorithm use */
+    LinkedHashSet<Node> articulationPoints = new LinkedHashSet<Node>();
+
     @Override
     protected void onAPs() {
+        long start = System.currentTimeMillis();
 
+        /*
+         * do the initialization of each Node and assign random node as the root node
+         */
+        String outputString = "";
+        this.articulationPoints = new LinkedHashSet<Node>();
+        int index = -1;
+        int randomIndex = new Random().nextInt(graph.nodes.values().size());
+
+        // Node rootNode = null;// setup the root node
+        for (Node node : graph.nodes.values()) {
+            index++;
+            // reset the previous node, the visited to false ,the depth and the reachBack value
+            node.setVisited(false);
+            node.setPreviousNode(null);
+            node.setDepth(Integer.MAX_VALUE);
+            node.setReachBackValue(Integer.MAX_VALUE);
+            // // assign the root node, it's random selected
+            // if (randomIndex == index) {
+            // rootNode = node;
+            // }
+
+            // for debug, it's used for the big graph since this group is isolated
+            // and easy to see the result, also this root node is the APoint
+            // if (node.getNodeID() == 20839) {
+            // rootNode = node;
+            // rootNode.setDepth(0);
+            // }
+        }
+
+        for (Node rootNode : graph.nodes.values()) {
+            if (rootNode.getDepth() != Integer.MAX_VALUE) {
+                continue; // has visited, continue to check the next
+            }
+            // // for debug, it's used for the big graph since this group is isolated
+            // // and easy to see the result, also this root node is the APoint
+            // if (rootNode.getNodeID() != 20839) {
+            // continue;
+            // }
+
+            /*
+             * implement the articulation Points algorthim
+             */
+            int subTreeNumber = 0;
+            rootNode.setDepth(0);
+
+            for (Node neighNode : rootNode.getAllNeighbourNodes()) {
+                if (neighNode.getDepth() == Integer.MAX_VALUE) {
+                    iterativeAPts(neighNode, 1, rootNode);
+                    subTreeNumber++;
+                }
+            }
+            // need to move this out since the subTree may be a lot
+            if (subTreeNumber > 1) {
+                outputString += "The root node is the articulation Point";
+                this.articulationPoints.add(rootNode);
+            }
+        }
+        /*
+         * highlight nodes and set up the output string
+         */
+        this.graph.setHighlight_nodes(this.articulationPoints);
+        outputString = "The true value of the small/big Graph:\t 240 and 10853" +
+                       "\nMy algorthim can find " + this.articulationPoints.size()
+                       + " articulation points for this graph: ";
+        long end = System.currentTimeMillis();
+        long runtime = end - start;
+        outputString += "\nMy algorthim runs " + runtime + "  milliseconds!(1000millis=1sec)";
+
+        System.out.println(outputString);
+        getTextOutputArea().setText(outputString);
+    }
+
+    private void iterativeAPts(Node neighbourNode, int depth, Node rootNode) {
+        Stack<Fringe> fringeStack = new Stack<Fringe>();
+        fringeStack.push(new Fringe(neighbourNode, depth, rootNode));
+
+        // repeat until the stack is empty
+        while (!fringeStack.isEmpty()) {
+
+            // assign variables
+            Fringe peekFringe = fringeStack.peek();// just peek, not pop the Fringe out
+            Node neighNode_fromPeekFringe = peekFringe.getFirst_neighbourNode();
+
+            // get the childrenNodes, the root node has already been removed
+            // via the Fringe constructor
+            // ArrayList<Node> temp_childNodes_of_firstNeighbourNode = new
+            // ArrayList<Node>(peekFringe
+            // .getChildNodes_of_firstNeighbourNode());
+
+            // the depth is still the MAX, it's the first visit,
+            // set the reachBack to the depth
+            if (neighNode_fromPeekFringe.getDepth() == Integer.MAX_VALUE
+            // || !currentNeighbourNode_fromPeekFringe.isVisited()
+
+            ) {
+
+                neighNode_fromPeekFringe.setVisited(true);
+                // do the initializion to set up the depth and the reach back
+                neighNode_fromPeekFringe.setDepth(peekFringe.getDepth());
+                neighNode_fromPeekFringe.setReachBackValue(peekFringe.getDepth());
+                // remove the root node from the ChildNodes
+                peekFringe.removeFromChildrenNodes(peekFringe.getRootNode());
+                // neighNode_fromPeekFringe.removeFromChildrenNodes(peekFringe.getRootNode());
+            }
+
+            else if (!peekFringe.getChildNodes_of_firstNeighbourNode().isEmpty()) {
+                // get and remove a child from CHildrenNodes_neighbour
+                // update the pointer
+                Node childNode = peekFringe.get_and_remove_a_node_from_children();
+                /*
+                 * check whether this childNode has been visted before
+                 */
+
+                // it's been visited before since the depth is still the infinity,
+                // update the reachBack value of the
+                if (childNode.getDepth() < Integer.MAX_VALUE
+                // ||
+                // childNode.isVisited()
+                ) {
+
+                    // compare and update the reachBack value
+                    int minReachBackValue_neigh = Math.min(
+                            childNode.getDepth(),
+                            neighNode_fromPeekFringe.getReachBackValue());
+
+                    neighNode_fromPeekFringe.setReachBackValue(minReachBackValue_neigh);
+
+                }
+                // it's the first time to visit this ChildNode,
+                // push a new Fringe object into the fringeStack
+                else {
+                    // increase the depth of this new Fringe instance
+                    fringeStack.push(new Fringe(childNode,
+                            peekFringe.getDepth() + 1, neighNode_fromPeekFringe));
+                }
+
+            }
+
+            else {
+                // if (!neighNode_fromPeekFringe.equals(neighbourNode)) {
+                if (neighNode_fromPeekFringe.getNodeID() != neighbourNode.getNodeID()) {
+                    int minReachBack_rootNOde = Math.min(
+                            neighNode_fromPeekFringe.getReachBackValue(),
+                            peekFringe.getRootNode().getReachBackValue());
+
+                    peekFringe.getRootNode().setReachBackValue(minReachBack_rootNOde);
+
+                    if (neighNode_fromPeekFringe
+                            .getReachBackValue() >= peekFringe.getRootNode()
+                                    .getDepth()) {
+                        this.articulationPoints.add(peekFringe.getRootNode());
+                    }
+                }
+                fringeStack.pop();
+            }
+
+        }
     }
 
     /**

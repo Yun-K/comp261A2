@@ -27,10 +27,18 @@ public class Node {
     private int depth = Integer.MAX_VALUE;
 
     /**
+     * it represent the index of childNode's depth where this childNode can reachBack to the
+     * group of the Parent Node
+     */
+    private int reachBackValue = Integer.MAX_VALUE;
+
+    /**
      * there are lots of node neighbours, so the previous node is the node before it reaches to
      * the current Node
      */
     private Node previousNode = null;
+
+    private Collection<Node> childrenNodes;
 
     public final int nodeID;
 
@@ -48,6 +56,8 @@ public class Node {
         // set up the outgoing and incoming segments
         // this.outGoSegments = new HashSet<Segment>();
         // this.incomingSegments = new HashSet<Segment>();
+        this.childrenNodes = new HashSet<Node>();
+        childrenNodes.addAll(getAllNeighbourNodes());// initially, the children==neighbours
     }
 
     public void addSegment(Segment seg) {
@@ -74,6 +84,38 @@ public class Node {
             assert !seg.start.equals(this);
         }
         return incomingNOdes;
+    }
+
+    public Set<Node> getAllNeighbourNodes() {
+        Set<Node> allNeighbourNodes = new HashSet<Node>();
+        // add all adjacent NOdes from the segments
+        for (Segment segment : segments) {
+            allNeighbourNodes.add(segment.end);
+            allNeighbourNodes.add(segment.start);
+        }
+        allNeighbourNodes.remove(this);// remove itself since the neighbour cannot be itself,
+                                       // much more easier, dont need to do the if check
+        return allNeighbourNodes;
+    }
+
+    /**
+     * Description: <br/>
+     * Remove the spcificied node from the ChildrenNodes and then return it.
+     * 
+     * @author Yun Zhou
+     * @param node_toRemove
+     *            the node that need to be removed
+     * @return the collection without the specificied node_toRemove object
+     */
+    public Collection<Node> removeFromChildrenNodes(Node node_toRemove) {
+        this.childrenNodes.remove(node_toRemove);
+        // assert isRemoved;
+        return childrenNodes;
+
+        // Set<Node> allNeighbourNodes = this.getAllNeighbourNodes();
+        // boolean isRemoved = allNeighbourNodes.remove(node_toRemove);// remove the parent
+        // assert isRemoved;// do the postCondition Check to check whether it's removed or not
+        // return allNeighbourNodes;
     }
 
     /**
@@ -118,6 +160,20 @@ public class Node {
 
     }
 
+    /**
+     * Description: <br/>
+     * Draw the NOde on the graph.
+     * 
+     * @author tony
+     * @param g
+     *            the graphics
+     * @param area
+     *            the dimension area
+     * @param origin
+     *            the origin location
+     * @param scale
+     *            the scale value in double
+     */
     public void draw(Graphics g, Dimension area, Location origin, double scale) {
         Point p = location.asPoint(origin, scale);
 
@@ -223,6 +279,7 @@ public class Node {
 
     @Override
     public boolean equals(Object obj) {
+
         if (this == obj) {
             return true;
         }
@@ -232,22 +289,14 @@ public class Node {
         if (getClass() != obj.getClass()) {
             return false;
         }
+        if (this.hashCode() == obj.hashCode()) {
+            return true;
+        }
         Node other = (Node) obj;
         if (nodeID != other.nodeID) {
             return false;
         }
         return true;
-    }
-
-    public Set<Node> getNeighbourNode() {
-        Set<Node> nodes_nei = new HashSet<Node>();
-        for (Segment segment : segments) {
-            nodes_nei.add(segment.end);
-            nodes_nei.add(segment.start);
-
-        }
-        // TODO Auto-generated method stub
-        return nodes_nei;
     }
 
     /**
@@ -267,6 +316,44 @@ public class Node {
      */
     public void setDepth(int depth) {
         this.depth = depth;
+    }
+
+    /**
+     * Get the reachBackValue.
+     *
+     * @return the reachBackValue
+     */
+    public int getReachBackValue() {
+        return reachBackValue;
+    }
+
+    /**
+     * Set the reachBackValue.
+     *
+     * @param reachBackValue
+     *            the reachBackValue to set
+     */
+    public void setReachBackValue(int reachBackValue) {
+        this.reachBackValue = reachBackValue;
+    }
+
+    /**
+     * Get the childrenNodes.
+     *
+     * @return the childrenNodes
+     */
+    public Collection<Node> getChildrenNodes() {
+        return childrenNodes;
+    }
+
+    /**
+     * Set the childrenNodes.
+     *
+     * @param childrenNodes
+     *            the childrenNodes to set
+     */
+    public void setChildrenNodes(Collection<Node> childrenNodes) {
+        this.childrenNodes = childrenNodes;
     }
 }
 

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -81,14 +82,18 @@ public class Graph {
         }
 
         if (!highlightedNodes.isEmpty()) {
-            for (int i = 0; i < highlightedNodes.size(); i++) {
-                g2.setColor(Color.MAGENTA);
-                Node node = highlightedNodes.get(i);
-                if (i == 0 || i == highlightedNodes.size() - 1) {
-                    g2.setColor(Color.CYAN);
-                }
+            int index = -1;
+            g2.setColor(Color.red);
+            for (Node node : highlightedNodes) {
+                index++;
+                // g2.setColor(Color.green);
+                // if (index == 0 || index == highlightedNodes.size() - 1) {
+                // g2.setColor(Color.red);
+                // }
                 node.draw(g2, screen, origin, scale);
+
             }
+
         }
 
     }
@@ -103,14 +108,14 @@ public class Graph {
 
     Collection<Segment> highlightedSegments = new HashSet<>();
 
-    LinkedList<Node> highlightedNodes = new LinkedList<Node>();
+    Collection<Node> highlightedNodes = new LinkedList<Node>();
 
     public void setHighlight(List<Segment> path_segments) {
         this.highlightedSegments = path_segments;
 
     }
 
-    public void setHighlight(LinkedList<Node> path_nodes) {
+    public void setHighlight_nodes(Collection<Node> path_nodes) {
         this.highlightedNodes = path_nodes;
     }
 
