@@ -163,6 +163,8 @@ public abstract class GUI {
 
     private static final String POLYS_FILENAME = "polygon-shapes.mp";
 
+    private static final String RESTRCTION_FILENAME = "restrctions.tab";
+
     /*
      * In Swing, everything is a component; buttons, graphics panes, tool tips, and the window
      * frame are all components. This is implemented by JComponent, which sits at the top of
