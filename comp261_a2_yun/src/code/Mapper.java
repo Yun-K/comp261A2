@@ -72,6 +72,10 @@ public class Mapper extends GUI {
     /** for highlighting segments use */
     private Segment lowestWeightSegment = null;
 
+    /** for the Articulation Points Algorithm use */
+    LinkedHashSet<Node> articulationPoints = new LinkedHashSet<Node>();
+
+    /** for the Articulation Points Algorithm use */
     public static final int INFINITY = Integer.MAX_VALUE;
 
     @Override
@@ -388,9 +392,6 @@ public class Mapper extends GUI {
 
     }
 
-    /** for the Articulation Points Algorithm use */
-    LinkedHashSet<Node> articulationPoints = new LinkedHashSet<Node>();
-
     @Override
     protected void onAPs() {
         long start = System.currentTimeMillis();
@@ -410,18 +411,12 @@ public class Mapper extends GUI {
             node.setVisited(false);
             node.setPreviousNode(null);
             node.setDepth(INFINITY);
-            node.setReachBackValue(0);// MAX_VALUE);
+            node.setReachBackValue(INFINITY);
             // // assign the root node, it's random selected
             // if (randomIndex == index) {
             // rootNode = node;
             // }
 
-            // for debug, it's used for the big graph since this group is isolated
-            // and easy to see the result, also this root node is the APoint
-            // if (node.getNodeID() == 20839) {
-            // rootNode = node;
-            // rootNode.setDepth(0);
-            // }
         }
 
         for (Node rootNode : graph.nodes.values()) {
@@ -429,9 +424,11 @@ public class Mapper extends GUI {
                 continue; // has visited, continue to check the next
             }
 
-            // // for debug, it's used for the big graph since this group is isolated
-            // // and easy to see the result, also this root node is the APoint
-            // if (rootNode.getNodeID() != 20839) {
+            // for debug, ids are for the large graph since these groups where ids belongs
+            // are isolated so that easy to see the result, also these root node with these
+            // ids are also the APoint
+            // if (rootNode.getNodeID() != 20839 || rootNode.getNodeID() !=20384 ||
+            // rootNode.getNodeID() !=20206) {
             // continue;
             // }
 
@@ -439,16 +436,17 @@ public class Mapper extends GUI {
              * implement the articulation Points algorthim
              */
             int subTreeNumber = 0;
-
+            // loop through the neighbours
             for (Node neighNode : rootNode.getAllNeighbourNodes()) {
-                if (neighNode.getDepth() == INFINITY) {
+                // if this neighbour is the first visit, then do iterative DFS
+                if (neighNode.getDepth() == INFINITY || !neighNode.isVisited()) {
                     iterativeAPts(neighNode, 1, rootNode);
                     subTreeNumber++;
                 }
             }
             // need to move this out since the subTree may be a lot
             if (subTreeNumber > 1) {
-                outputString += "The root node is the articulation Point";
+                // System.out.println("The root node is the artic point");//debug
                 this.articulationPoints.add(rootNode);
             }
         }
@@ -479,18 +477,10 @@ public class Mapper extends GUI {
                                                                // out
             Node neighNode_fromPeekFringe = peekFringe.getFirst_neighbourNode();
 
-            // get the childrenNodes, the root node has already been removed
-            // via the Fringe constructor
-            // ArrayList<Node> temp_childNodes_of_firstNeighbourNode = new
-            // ArrayList<Node>(peekFringe
-            // .getChildNodes_of_firstNeighbourNode());
-
             // the depth is still the MAX, it's the first visit,
             // set the reachBack to the depth
             if (neighNode_fromPeekFringe.getDepth() == INFINITY
-            // || !neighNode_fromPeekFringe.isVisited()
-
-            ) {
+                    || !neighNode_fromPeekFringe.isVisited()) {
 
                 neighNode_fromPeekFringe.setVisited(true);
                 // do the initializion to set up the depth and the reach back
@@ -498,23 +488,13 @@ public class Mapper extends GUI {
                 neighNode_fromPeekFringe.setReachBackValue(peekFringe.getDepth());
                 // remove the root node from the ChildNodes
                 // neighNode_fromPeekFringe.removeFromChildrenNodes(peekFringe.getRootNode());
-
-                // add to nodeStar children
-                neighNode_fromPeekFringe.childrenNodes = new ArrayList<Node>();
-                for (Segment s : neighNode_fromPeekFringe.segments) {
-                    if ((s.start.nodeID != peekFringe.getRootNode().nodeID
-                            && s.end.nodeID != peekFringe.getRootNode().nodeID)) { // add all
-                                                                                   // except
-                        // prent
-                        // segment has 2 nodes, add the node that isn't this one to
-                        // adjaentNodes
-                        if (!(s.start.nodeID == neighNode_fromPeekFringe.nodeID)) {
-                            neighNode_fromPeekFringe.childrenNodes.add(s.start);
-                        } else {
-                            neighNode_fromPeekFringe.childrenNodes.add(s.end);
-                        }
-                    }
-                }
+                remove_node_from_children(neighNode_fromPeekFringe, peekFringe.getRootNode());
+                // set up the child
+                // for (Segment s : neighNode_fromPeekFringe.segments) {
+                // neighNode_fromPeekFringe.childrenNodes.add(s.start);
+                // neighNode_fromPeekFringe.childrenNodes.add(s.end);
+                // }
+                // add all adjacent NOdes from the segments except parent
             }
 
             // else if (!peekFringe.getChildNodes_of_firstNeighbourNode().isEmpty()) {
@@ -523,7 +503,6 @@ public class Mapper extends GUI {
                 // get and remove a child from CHildrenNodes_neighbour
                 // update the pointer
                 Node childNode = neighNode_fromPeekFringe.get_and_remove_a_node_from_children();
-                // Node childNode = neighNode_fromPeekFringe.childrenNodes.remove(0);
                 /*
                  * check whether this childNode has been visted before
                  */
@@ -531,9 +510,8 @@ public class Mapper extends GUI {
                 // it's been visited before since the depth is still the infinity,
                 // update the reachBack value of the
                 if (childNode.getDepth() < INFINITY
-                // ||
-                // childNode.isVisited()
-                ) {
+                        ||
+                        childNode.isVisited()) {
 
                     // compare and update the reachBack value
                     int minReachBackValue_neigh = Math.min(
@@ -571,6 +549,34 @@ public class Mapper extends GUI {
             }
 
         }
+
+    }
+
+    /**
+     * Description: <br/>
+     * COnstruct and set the childNodes of the currentNode. And remove the specificied
+     * nodeToRemove which is the parent node.
+     * 
+     * @author Yun Zhou
+     * @param currentNode
+     *            the current node that need to set up the children
+     * @param nodeToRemove
+     *            the parent which need to be removed from current.childrenNode
+     */
+    private void remove_node_from_children(Node currentNode, Node nodeToRemove) {
+
+        Set<Node> tempchildNodes = new LinkedHashSet<Node>();
+        for (Segment segment : currentNode.segments) {
+            tempchildNodes.add(segment.end);
+            tempchildNodes.add(segment.start);
+        }
+        tempchildNodes.remove(nodeToRemove);// remove the specificed node
+        // remove itself since the neighbour cannot be itself, much more easier, dont
+        // need to do the if check
+        tempchildNodes.remove(currentNode);
+
+        currentNode.setChildrenNodes(tempchildNodes);
+
     }
 
     /**

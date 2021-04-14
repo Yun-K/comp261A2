@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -38,7 +39,7 @@ public class Node {
      */
     private Node previousNode = null;
 
-    public List<Node> childrenNodes;
+    private Collection<Node> childrenNodes;
 
     public final int nodeID;
 
@@ -58,14 +59,7 @@ public class Node {
         // this.incomingSegments = new HashSet<Segment>();
         // this.childrenNodes = getAllNeighbourNodes();// initially, the children==neighbours
 
-        this.childrenNodes = new ArrayList<Node>();
-        // add all adjacent NOdes from the segments
-        for (Segment segment : segments) {
-            childrenNodes.add(segment.end);
-            childrenNodes.add(segment.start);
-        }
-        childrenNodes.remove(this);// remove itself since the neighbour cannot be itself,
-                                   // much more easier, dont need to do the if check
+        this.setChildrenNodes(new LinkedHashSet<Node>());
 
     }
 
@@ -112,29 +106,21 @@ public class Node {
      * Remove the spcificied node from the ChildrenNodes and then return it.
      * 
      * @author Yun Zhou
-     * @param node_toRemove
-     *            the node that need to be removed
-     * @return the collection without the specificied node_toRemove object
+     * @return the node that has been removed
      */
-    public Collection<Node> removeFromChildrenNodes(Node node_toRemove) {
-        this.childrenNodes.remove(node_toRemove);
-        assert childrenNodes.contains(node_toRemove) == false;
-        return childrenNodes;
-    }
-
     public Node get_and_remove_a_node_from_children() {
-        if (childrenNodes.isEmpty() || childrenNodes == null) {
-            assert false;
+        if (getChildrenNodes().isEmpty() || getChildrenNodes() == null) {
+            assert false;// debug
         }
-        return this.childrenNodes.remove(0);
-        // Node node_toRemoveAndReturn = null;
-        // for (Node node : this.childrenNodes) {
-        // node_toRemoveAndReturn = node;
-        // break;
-        // }
-        // this.childrenNodes.remove(node_toRemoveAndReturn);
-        // assert this.childrenNodes.contains(node_toRemoveAndReturn) == false;
-        // return node_toRemoveAndReturn;
+        // return this.childrenNodes.remove(new Random().nextInt(childrenNodes.size()));
+        Node node_toRemoveAndReturn = null;
+        for (Node node : this.getChildrenNodes()) {
+            node_toRemoveAndReturn = node;
+            break;
+        }
+        this.getChildrenNodes().remove(node_toRemoveAndReturn);
+        assert this.getChildrenNodes().contains(node_toRemoveAndReturn) == false;
+        return node_toRemoveAndReturn;
 
     }
 
@@ -364,6 +350,16 @@ public class Node {
      */
     public Collection<Node> getChildrenNodes() {
         return childrenNodes;
+    }
+
+    /**
+     * Set the childrenNodes.
+     *
+     * @param childrenNodes
+     *            the childrenNodes to set
+     */
+    public void setChildrenNodes(Collection<Node> childrenNodes) {
+        this.childrenNodes = childrenNodes;
     }
 
 }
