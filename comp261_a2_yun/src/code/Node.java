@@ -47,6 +47,8 @@ public class Node {
 
     public final Collection<Segment> segments;
 
+    private Node rootNode;
+
     // /** the outgoing and incoming segments */
     // private Set<Segment> outGoSegments, incomingSegments;
 
@@ -121,6 +123,19 @@ public class Node {
         this.getChildrenNodes().remove(node_toRemoveAndReturn);
         assert this.getChildrenNodes().contains(node_toRemoveAndReturn) == false;
         return node_toRemoveAndReturn;
+
+    }
+
+    /**
+     * Description: <br/>
+     * remove the specificied node from children.
+     * 
+     * @author Yun Zhou
+     * @param node_toRemove
+     *            the node to remove
+     */
+    public void removeFromChildrenNodes(Node node_toRemove) {
+        this.childrenNodes.remove(node_toRemove);
 
     }
 

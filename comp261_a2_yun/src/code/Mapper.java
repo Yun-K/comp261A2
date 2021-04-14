@@ -6,7 +6,6 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -291,11 +290,6 @@ public class Mapper extends GUI {
 
         }
 
-        // finish the A star search, so reset the starNode and the target Node
-        startNode = null;
-        targetNode = null;
-        isFound_path = false;
-
     }
 
     /**
@@ -333,6 +327,12 @@ public class Mapper extends GUI {
 
     }
 
+    /**
+     * Description: <br/>
+     * Highligh all nodes, segments and setup the output string.
+     * 
+     * @author Yun Zhou
+     */
     private void highLightAllNodes_Segments() {
         LinkedList<Node> path_nodes = new LinkedList<Node>();
         LinkedList<Segment> path_segments = new LinkedList<Segment>();
@@ -401,12 +401,12 @@ public class Mapper extends GUI {
          */
         String outputString = "";
         this.articulationPoints = new LinkedHashSet<Node>();
-        int index = -1;
-        int randomIndex = new Random().nextInt(graph.nodes.values().size());
-
+        // int index = -1;
+        // int randomIndex = new Random().nextInt(graph.nodes.values().size());
         // Node rootNode = null;// setup the root node
         for (Node node : graph.nodes.values()) {
-            index++;
+            // index++;
+
             // reset the previous node, the visited to false ,the depth and the reachBack value
             node.setVisited(false);
             node.setPreviousNode(null);
@@ -416,9 +416,15 @@ public class Mapper extends GUI {
             // if (randomIndex == index) {
             // rootNode = node;
             // }
+            // if (node.getNodeID() == 20839) {
+            // rootNode = node;
+            // }
 
         }
 
+        // treat every node as the root node, check if it's visited before
+        // if it's visited before, then jump to check next
+        // otherwise, implement the articulation Points algorthim
         for (Node rootNode : graph.nodes.values()) {
             if (rootNode.getDepth() != INFINITY || rootNode.isVisited()) {
                 continue; // has visited, continue to check the next
@@ -439,12 +445,13 @@ public class Mapper extends GUI {
             // loop through the neighbours
             for (Node neighNode : rootNode.getAllNeighbourNodes()) {
                 // if this neighbour is the first visit, then do iterative DFS
-                if (neighNode.getDepth() == INFINITY || !neighNode.isVisited()) {
+                if (neighNode.getDepth() == INFINITY
+                        || !neighNode.isVisited()) {
                     iterativeAPts(neighNode, 1, rootNode);
                     subTreeNumber++;
                 }
             }
-            // need to move this out since the subTree may be a lot
+            // need to move this out since the subTree may be a lot,just need to add once
             if (subTreeNumber > 1) {
                 // System.out.println("The root node is the artic point");//debug
                 this.articulationPoints.add(rootNode);
@@ -465,6 +472,32 @@ public class Mapper extends GUI {
         getTextOutputArea().setText(outputString);
     }
 
+    /**
+     * Description: <br/>
+     * The iterative version of the articulation point algorthim.
+     * <p>
+     * Goal: set/update reachBack of each node in the sub-tree
+     * <p>
+     * • For each node, reachBack is set/updated in the following cases:
+     * <p>
+     * – When first visited: reachBack = depth
+     * <p>
+     * – When one of its children’s reachBack is updated: reachBack = min(childReach,
+     * reachBack)
+     * <p>
+     * – When all the children have been calculated, update the reachBack of its parent
+     * <p>
+     * • Need to update the node information in different stages of DFS
+     * 
+     * 
+     * @author Yun Zhou
+     * @param currentNode
+     *            current node
+     * @param depth
+     *            the depth
+     * @param rootNode
+     *            the parent node of the currentNode arg
+     */
     private void iterativeAPts(Node currentNode, int depth, Node rootNode) {
         Stack<FringeArtPoint> fringeArtPStack = new Stack<FringeArtPoint>();
         fringeArtPStack.push(new FringeArtPoint(currentNode, depth, rootNode));
@@ -473,30 +506,34 @@ public class Mapper extends GUI {
         while (!fringeArtPStack.isEmpty()) {
 
             // assign variables
-            FringeArtPoint peekFringe = fringeArtPStack.peek();// just peek, not pop the Fringe
-                                                               // out
+            FringeArtPoint peekFringe = fringeArtPStack.peek();// just peek, not pop out
             Node neighNode_fromPeekFringe = peekFringe.getFirst_neighbourNode();
 
-            // the depth is still the MAX, it's the first visit,
+            // the depth is still the INFINITY, it's the first visit,
             // set the reachBack to the depth
             if (neighNode_fromPeekFringe.getDepth() == INFINITY
                     || !neighNode_fromPeekFringe.isVisited()) {
 
+                // do the initializion to set up the depth and the reach back and visit=true
                 neighNode_fromPeekFringe.setVisited(true);
-                // do the initializion to set up the depth and the reach back
                 neighNode_fromPeekFringe.setDepth(peekFringe.getDepth());
                 neighNode_fromPeekFringe.setReachBackValue(peekFringe.getDepth());
-                // remove the root node from the ChildNodes
+                // initialize the children of the neighboyrNode
+                // add all neighbour NOdes from the segments except parent
+                // which is the root node
+                this.remove_node_from_children(neighNode_fromPeekFringe, peekFringe.getRootNode());
+
+                // can not do this operation directly inside the Fringe or Node,
+                // since the artic points number is incorrect
+                // maybe it's the pointer problem?
+                // Because as the field, the childNode's depth and reachBack is different?
                 // neighNode_fromPeekFringe.removeFromChildrenNodes(peekFringe.getRootNode());
-                remove_node_from_children(neighNode_fromPeekFringe, peekFringe.getRootNode());
-                // set up the child
-                // for (Segment s : neighNode_fromPeekFringe.segments) {
-                // neighNode_fromPeekFringe.childrenNodes.add(s.start);
-                // neighNode_fromPeekFringe.childrenNodes.add(s.end);
-                // }
-                // add all adjacent NOdes from the segments except parent
+
             }
 
+            /*
+             * do the DFS of the child of child
+             */
             // else if (!peekFringe.getChildNodes_of_firstNeighbourNode().isEmpty()) {
             else if (!neighNode_fromPeekFringe.getChildrenNodes().isEmpty()) {
 
@@ -508,7 +545,7 @@ public class Mapper extends GUI {
                  */
 
                 // it's been visited before since the depth is still the infinity,
-                // update the reachBack value of the
+                // update the reachBack value of the neighNode from peekFringe
                 if (childNode.getDepth() < INFINITY
                         ||
                         childNode.isVisited()) {
@@ -521,8 +558,8 @@ public class Mapper extends GUI {
                     neighNode_fromPeekFringe.setReachBackValue(minReachBackValue_neigh);
 
                 }
-                // it's the first time to visit this ChildNode,
-                // push a new Fringe object into the fringeStack
+                // it's the first time to visit this neighNode.ChildNode,
+                // push a new Fringe object into the fringeStack, and do the DFS
                 else {
                     // increase the depth of this new Fringe instance
                     fringeArtPStack.push(new FringeArtPoint(childNode,
@@ -531,15 +568,18 @@ public class Mapper extends GUI {
 
             }
 
+            //
             else {
-                // if (!neighNode_fromPeekFringe.equals(currentNode)) {
-                if (neighNode_fromPeekFringe.getNodeID() != currentNode.getNodeID()) {
+                // if (neighNode_fromPeekFringe.getNodeID() != currentNode.getNodeID()) {
+                // update the reachBack of peekFringe.rootNode
+                if (!neighNode_fromPeekFringe.equals(currentNode)) {
                     int minReachBack_rootNOde = Math.min(
                             neighNode_fromPeekFringe.getReachBackValue(),
                             peekFringe.getRootNode().getReachBackValue());
 
                     peekFringe.getRootNode().setReachBackValue(minReachBack_rootNOde);
 
+                    //
                     if (neighNode_fromPeekFringe
                             .getReachBackValue() >= peekFringe.getRootNode().getDepth()) {
                         this.articulationPoints.add(peekFringe.getRootNode());
