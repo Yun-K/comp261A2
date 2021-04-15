@@ -261,8 +261,13 @@ public class Mapper extends GUI {
 
                     if (!outgoing_node.isVisited()) {
 
-                        // this part for checking one way road.
-                        if (isOneWayRoad(currentNode, outgoing_node)) {
+                        // this part for checking one way road
+                        // and if it's one way whether it's legal
+                        if (!isLegalRoad(currentNode, outgoing_node)) {
+                            // it's not legal, do not offer this into the fringeQueue, jump to
+                            // search the next
+                            System.out.println("!FIND ILLEGAL ROAD SEGMENT!");
+                            continue;
 
                         }
 
@@ -333,8 +338,10 @@ public class Mapper extends GUI {
         }
 
         if (weight == Double.POSITIVE_INFINITY) {
-            System.err.println("No segment between startNode to targetNode.");
-
+            System.err.println(
+                    "No segment between startNode to targetNode.\nbut args should be neighbour!"
+                               + "\nSomething is incorrect inside the a* algorthim");
+            assert false;
         }
         return weight;
 
@@ -348,7 +355,7 @@ public class Mapper extends GUI {
      * 
      * HINT: 1. the currentNode and outgoing node should be adjacent neighbour!
      * <p>
-     * 2.If it's one way, then the allowed direction is from beginning to end!
+     * 2.If it's one way(i.e. oneway==1), then the allowed direction is from beginning to end!
      * 
      * 
      * @author Yun Zhou
@@ -356,27 +363,42 @@ public class Mapper extends GUI {
      *            currentNode
      * @param outgoing_node
      *            the outgoing node to check
-     * @return true if it's one-way, false otherwise
+     * @return true if it's legal, false otherwise
      */
-    private boolean isOneWayRoad(Node currentNode, Node outgoing_node) {
-        boolean isOneWay = false;
+    private boolean isLegalRoad(Node currentNode, Node outgoing_node) {
+        boolean isLegal = true;
 
         for (Segment segment : currentNode.segments) {
             // if this segment is correct
-            if (segment.start.equals(outgoing_node) || segment.end.equals(outgoing_node)) {
+            if (segment.start.equals(currentNode) && segment.end.equals(outgoing_node)) {
                 int onewayValue = segment.road.getOneway();
-                if (onewayValue != 0) {
-                    // it's one way, direction from beginning to end
-                    isOneWay = true;
-                    //
-                    // segment.road.
+                // it's one way, direction from beginning to end
+                // set isLegal to false first
+                if (onewayValue == 1) {
+                    // System.out.println("\nThis segment is one way!");
+                    isLegal = false;
 
+                    // do 2nd check whether it's legal or not
+                    // loop through the components to check
+                    for (Segment orderSegment : segment.road.getComponents()) {
+                        // if it match the direction then it's legal and return true
+                        if (orderSegment.start.equals(currentNode)
+                                && orderSegment.end.equals(outgoing_node)) {
+                            System.out
+                                    .println("Although it's one-way,but it is legal way to move!!");
+                            isLegal = true;
+                            return isLegal;
+                        }
+                    }
                 }
-
             }
         }
 
-        return isOneWay;
+        //
+        if (!isLegal) {
+            System.out.println("Successfully avoid one way road");
+        }
+        return isLegal;
     }
 
     /**
