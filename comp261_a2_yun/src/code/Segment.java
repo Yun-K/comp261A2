@@ -33,7 +33,7 @@ public class Segment {
             points[i] = Location
                     .newFromLatLon(coords[2 * i], coords[2 * i + 1]);
         }
-
+        //
         this.road.addSegment(this);
         this.start.addSegment(this);
         this.end.addSegment(this);

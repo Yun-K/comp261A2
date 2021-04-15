@@ -343,7 +343,13 @@ public class Mapper extends GUI {
     /**
      * Description: <br/>
      * For checking the segment road from currentNode to outgoingNode is one-way road or not.
-     * HINT: the currentNode and outgoing node should be adjacent neighbour!
+     * If it's one way, then check whether the route segment from currentNode to outgoingNode
+     * is legal or not.
+     * 
+     * HINT: 1. the currentNode and outgoing node should be adjacent neighbour!
+     * <p>
+     * 2.If it's one way, then the allowed direction is from beginning to end!
+     * 
      * 
      * @author Yun Zhou
      * @param currentNode
@@ -361,6 +367,7 @@ public class Mapper extends GUI {
                 int onewayValue = segment.road.getOneway();
                 if (onewayValue != 0) {
                     // it's one way, direction from beginning to end
+                    isOneWay = true;
                     //
                     // segment.road.
 

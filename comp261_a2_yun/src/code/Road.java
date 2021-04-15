@@ -1,7 +1,7 @@
 package code;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 /**
  * Road represents ... a road ... in our graph, which is some metadata and a collection of
@@ -38,7 +38,8 @@ public class Road {
         this.roadID = roadID;
         this.city = city;
         this.name = label;
-        this.components = new HashSet<Segment>();
+        this.components = new LinkedHashSet<Segment>();// change it to LinkedHashSet so that
+                                                       // it's ordered and got index
         //
         this.notforbicy = notforbicy;
         this.notforpede = notforpede;
