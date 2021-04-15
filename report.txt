@@ -1,0 +1,185 @@
+What my code does:
+	I have completed all parts of minimum, core and completion.
+	For the challenge part, first, I try to add the JComboBox which contains the travel way like "walk" or "train" or "car" in the controls Jpanel. If selected, it will update the field of Mapper.
+	Also, I add the DistanceOrTime Jbutton to ask user to choose distance or time, if not select, the default is the distance. 
+	 Also, I take into account some restriction information like road.notforcar, notforpede,notforbike restrction.
+	I also add the Restriction class to load restrctions.tab file, but for the implemention, i find it's hard to understand the meaning of the restriction, so I give up, the restriction part should be added in Mapper.isLegalMove(Node currentNode,Node outGoing node).
+	
+	Finally for the challenge part, I try to explain and justify the designed heuristic which is shown below.
+	
+	(Hint: two pseudocode are at the end of this txt file.)
+	
+	A star:
+	For the A* one-to-one-route search, just click the startNode and then the targetNode. After they are selected, it will print the output string on the JTextArea which includes the roadName along with the corresponding length, and finally with the total distance length, the road name is in order.
+	For removing duplicates, I use the LinkedHashMap to check whether the road name is the same or not, if it's the same, merge segments and the length.
+	Also, the route including the road segments and	nodes are highlighted, this is done by passing the Collection of route_nodes and route_segments to GUI to highlight.
+	
+	 [2] Explain and justify the designed heuristic (why they are admissible and consistent).
+	The A* use the priorityQueue to store the Fringe object, the Fringe has 4 fields which are currentNode, previousNode, currentCost and total_estimated_cost. The sorted order is based on the total_estimated_cost. 
+	The currentCost(g) is: g = g* + segment.weight. It represent the real cost from the startNode to this currentNode.
+    The total_estimated_cost(f): f = g+h(currentNode), where h is the heuristic function and g is currentCost. For my assignment, I use the ecliden distance as the h() since the ecliden distance is the shortest distance between two point, so that it will never overestimate the true cost to the targetNode, and thus, it's admissible heuristic.
+	Also, since total_estimated_cost is: f = g + h(), my a* is also monotonic/consistent, it make sure that no revist will lead to better cost.
+	Also, due to the conclusion: The heuristic function is consistent/monotonic if it meets the condition:
+	h(node) <= h(neigh) + cost(node, neigh)
+	h(node) - h(neigh) <= cost(node, neigh)
+	(p.s. cost(node,neigh) is the segment weight)
+	I goto my programe and add these assertion check, the programe pass the assertion, which also proves that it's consistent/monotonic.
+	In conclusion, my a* is admissible and monotonic/consistent, it can make the search be able to obtain optimal solution. 
+	
+	
+	
+	Articulation Point:
+	For this part, I use the iteratcive version and it can find all articulation points in all cimponents of the disconnected graph, not just for one part.
+	For testing and debug purpose, I find some isloated small group and just check and highlight articulation points in these group. 
+	FOr instance, the node id: 20206,20384,20839, these three nodes are from small isolated group and also, they meet the condition that they are the articulation point. Treat them as root node can not only check whether the root itself, but also other nodes, pretty helpful, and this is how I test my programme.
+
+	For the true articulation point number is 240 for small graph and 10853 for large. My algorthim is strange as it find 241 and 10853, just one more point, dont know which part went wrong.
+	Through testing, it sometimes got the correct point number, sometimes got 1 more points, doen not have any regular although the java source code is the same, pretty confuse.
+
+	
+	
+The A star pseudocode:
+	The inputs are the start Node and the target node as well as the heurstic function：h(), startNode and targetNode are fields of Mapper class
+	
+	void onAstar(){
+		first, do the Precondition check to see whether the startNode and the target is null or not
+
+		Initially all the nodes are unvisited, and the fringe has a single element <start, null, 0, f(start)>;
+
+		//a priority queue which sort based on the total_estimated_cost, ascending order.
+		fringe_queue = new PriorityQueue;
+		
+		//offer the first fringe object into the prQueue. The fringe object  contains the start node and the target node 
+		fringe.offer[startFringe];
+		
+		while(the fringe_queue is not empty){
+			//extract the fringe object with lowest cost from the PriorityQueue
+			fringe_lowest = fringe_queue.poll();
+			
+			if(n* node is not visited){
+				set it visited 
+				and set	node*.prev = prev*;
+				
+				//check if the lowest fringe is the target
+				if(fringe_lowest==targetNode){
+					findPath = true;
+					break
+				}
+				
+				//use the for loop to loop through the outgoing neighbour of the node
+				for(outgoing : n*.outgoing neighbours){
+					if(outgoing.isVistied == false){
+						
+						//check the segment from n* to the neighbour is legal or not 
+						//which is check whether it's one-way road and 
+						if(!isLegal(n*,outgoing)){
+							continue;//not legal, do not add to fringe
+						}
+						
+						g = g* + edge.weight;
+						f = g + h(neigh);
+						add	a new	element	<neigh,node*,g,f> into	the	fringe;
+					
+					}
+				}
+			}
+		}
+		
+		//check if find the path
+		if(!findPath){return and report the result}
+
+		//Obtain the shortest path based on the .prev fields;
+		//then highlight the path nodes and the path segments
+		LinkedList route_nodes/segments/roads;
+		while(prevNode!=null){
+			linkedlist.addFirst(targetNode.prev);
+				
+			prevNode = preNode.getPrevNode()
+		}
+
+		Highlight route_nodes/segments/roads linkedlist;
+		loop through the route_segments_linkedlist, add corresponding  road and length to into the hashMap in order to merge the duplicate roads.
+		and finally print the distance and the roadName, id etc.
+
+
+		//Last step: reset the startNOde and targetNode to NULL since the AStar search is finished.
+		reset(startNode, targetNode);
+
+	}
+	
+	
+The Articulation Points Algorithm PSEUDOCODE:
+	The inputs are the graph.nodes
+	
+	function onAPts(){
+		APS={};//collection to store the Articulation Points 
+		
+		reset the values of the node, like depth,reachBack etc.
+		
+		//loop through all the nodes and treat every node as the root Node
+		for(rootNode:graph.nodes.values){
+			//check whether this node has been visited,
+			//if yes, continue since dont need to check again
+			if(rootNode.isVistied){continue;}
+		
+			int subTree = 0;
+			//loop through the neighbour 
+			for(Node neighbour:rootNode.getNeighbours){
+				//check the depth 
+				if(neighbour.depth==MAX INFINITY){
+					subTree++;
+					iterativeAPT(neighbour,1,rootNOde);
+				}
+			}
+			check whether the rootNode is the Apoints by checking the number of subtree 
+			if(subTree>1){APS.add(rootNOde)}
+		
+		}
+		
+		highlight the nodes that are APoints
+		and then, print the number to see whether it's correct
+	}
+
+	void iterativeAPT(Node currentNode,int depth,NOde rootNode){
+		push a new Fringe with the input args into the empty stack: fringeStack
+		Stack <currentNode,depth,rootNode>
+		
+		while loop until the fringe stack is empty{
+			peekFringe<n*,depth*,parent*> =  peek a fringe from the stack without remove it;
+			
+			 if it's first visited{
+				depth(n*)=depth*,reachBack(n*)=depth*;
+				children(n*)=all neighbours except parent*;
+			 }
+			 
+			 //when one of it's child reachBack is updated
+			 else if(the children(n*).isNotEmpty){
+				Node child = get and remove a child node from children(n*);
+				if(depth(child)<INFINITY){
+					reachBack(n*) = min(depth(child),reachBack(n*));
+					
+				}
+				else{push the <child,depth*+1,n*> into the stack }
+			 
+			 }
+			 
+			 //all children has been calculated , update the reachBack of the parent
+			 else{
+				if(n* is not currentNode){
+					reachBack(parent*)= min(reachBack(n*),reachBack(parent*);
+
+				}
+				if(reachBack(n*)>=depth(parent*){
+					then add parent* into APS;
+				}
+			 
+			 }
+			 pop the peekFringe out;
+			 
+		}
+	
+	
+	}
+
+
+
