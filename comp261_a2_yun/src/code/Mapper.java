@@ -8,11 +8,12 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
-import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
 
@@ -252,11 +253,19 @@ public class Mapper extends GUI {
 
                 // loop through the outgoing node neighbours
 
+                // should be outgoing,not all neighboiurs, but it's hard to see on the graph,so
+                // let's use all neighbours first
                 for (Node outgoing_node : currentNode.getAllNeighbourNodes()) {
 
                     // for (Node outgoing_node : currentNode.getOutGoingNodes()) {
 
                     if (!outgoing_node.isVisited()) {
+
+                        // this part for checking one way road.
+                        if (isOneWayRoad(currentNode, outgoing_node)) {
+
+                        }
+
                         // assign the g(node)
                         double startNodeToNeighbourCost_sofar = fringe_lowest.getCurrent_cost()
                                 + findSegmentWeight(currentNode, outgoing_node);
@@ -323,8 +332,44 @@ public class Mapper extends GUI {
             }
         }
 
+        if (weight == Double.POSITIVE_INFINITY) {
+            System.err.println("No segment between startNode to targetNode.");
+
+        }
         return weight;
 
+    }
+
+    /**
+     * Description: <br/>
+     * For checking the segment road from currentNode to outgoingNode is one-way road or not.
+     * HINT: the currentNode and outgoing node should be adjacent neighbour!
+     * 
+     * @author Yun Zhou
+     * @param currentNode
+     *            currentNode
+     * @param outgoing_node
+     *            the outgoing node to check
+     * @return true if it's one-way, false otherwise
+     */
+    private boolean isOneWayRoad(Node currentNode, Node outgoing_node) {
+        boolean isOneWay = false;
+
+        for (Segment segment : currentNode.segments) {
+            // if this segment is correct
+            if (segment.start.equals(outgoing_node) || segment.end.equals(outgoing_node)) {
+                int onewayValue = segment.road.getOneway();
+                if (onewayValue != 0) {
+                    // it's one way, direction from beginning to end
+                    //
+                    // segment.road.
+
+                }
+
+            }
+        }
+
+        return isOneWay;
     }
 
     /**
@@ -370,21 +415,46 @@ public class Mapper extends GUI {
         }
         // this.graph.setHighlight(path_roads);// highlight the roads
         this.graph.setHighlight(path_segments);// highlight the segment
-
         this.graph.setHighlight_nodes(path_nodes);// highlight nodes
 
         /*
          * Set up the output string, which includes roadNames, segment length etc. For testing
          * purpose, can also includes the nodeID and RoadID
          */
-        String outputString = "The route: \n";
-        int index = 0;
-        for (Segment segment : path_segments) {
-            index++;
-            outputString += index + ". " + segment.road.toString() + " " // +
-                                                                         // segment.toString()
-                            + " : " + String.format("%.2f km", segment.length) + "\n";
+        // String outputString = "The route: \n";
+        // int index = 0;
+        // for (Segment segment : path_segments) {
+        // index++;
+        // outputString += index + ". " + segment.road.toString() + " " // +
+        // // segment.toString()
+        // + " : " + String.format("%.2f km", segment.length) + "\n";
+        //
+        // }
 
+        String outputString = "The route: \n";
+        // the map for removing duplicate roads on output
+        // the linkedHashMAp can make sure the order
+        LinkedHashMap<String, Double> roadName_to_length_map = new LinkedHashMap<String, Double>();
+        for (Segment segment : path_segments) {
+            String key = segment.road.getName();
+            // if it's first time to access
+            if (!roadName_to_length_map.containsKey(key)) {
+                roadName_to_length_map.put(key, segment.length);
+            } else {
+                // it's not first time, update the value length
+                double newLength_value = roadName_to_length_map.get(key) + segment.length;
+                roadName_to_length_map.put(key, newLength_value);
+            }
+
+        }
+
+        // loop through the map to set up the output string
+        int index = 0;
+        for (String key : roadName_to_length_map.keySet()) {
+            index++;
+            double leng = roadName_to_length_map.get(key);
+            outputString += index + ". " + key.toString() + "  :  "
+                            + String.format("%.2f km", leng) + "\n";
         }
 
         outputString += "\nTotal distance = " + String.format("%.2f km", total_distance);

@@ -16,6 +16,8 @@ public class Road {
 
     public final Collection<Segment> components;
 
+    // 0 : both directions allowed
+    // 1 : one way road, direction from beginning to end
     private int oneway;
 
     private int notforpede;

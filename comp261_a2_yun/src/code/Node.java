@@ -310,9 +310,6 @@ public class Node {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        if (this.hashCode() == obj.hashCode()) {
-            return true;
-        }
         Node other = (Node) obj;
         if (nodeID != other.nodeID) {
             return false;
