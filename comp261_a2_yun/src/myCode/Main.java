@@ -19,6 +19,6 @@ public class Main extends Mapper {
      * @param args
      */
     public static void main(String[] args) {
-        new Main();
+        new Mapper();
     }
 }
