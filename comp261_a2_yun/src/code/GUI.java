@@ -90,9 +90,10 @@ public abstract class GUI {
      *            a File for roadSeg-roadID-length-nodeID-nodeID-coords.tab
      * @param polygons
      *            a File for polygon-shapes.mp
+     * @param restrictionFile
      */
     protected abstract void onLoad(File nodes, File roads, File segments,
-            File polygons);
+            File polygons, File restrictionFile);
 
     /**
      * Description: <br/>
@@ -260,7 +261,7 @@ public abstract class GUI {
                                 "Directory does not contain correct files",
                                 "Error", JOptionPane.ERROR_MESSAGE);
                     } else {
-                        onLoad(nodes, roads, segments, polygons);
+                        onLoad(nodes, roads, segments, polygons, restrictionFile);
                         redraw();
                     }
                 }
@@ -315,7 +316,7 @@ public abstract class GUI {
             }
         });
 
-        JButton aStar = new JButton("A*");
+        JButton aStar = new JButton("DistanceOrTime");
         aStar.addActionListener((ActionEvent e) -> showDistanceOrTimeDialog());
         // aStar.addActionListener(new ActionListener() {
         // public void actionPerformed(ActionEvent ev) {
@@ -330,7 +331,7 @@ public abstract class GUI {
         // }
         // });
 
-        JButton aPs = new JButton("DistanceOrTime");
+        JButton aPs = new JButton("Find APts");
         aPs.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
                 onAPs();

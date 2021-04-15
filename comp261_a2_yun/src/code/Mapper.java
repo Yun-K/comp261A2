@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.Map;
+import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
@@ -19,6 +19,7 @@ import java.util.Stack;
 
 import myCode.Fringe;
 import myCode.FringeArtPoint;
+import myCode.Restriction;
 
 /**
  * This is the main class for the mapping program. It extends the GUI abstract class and
@@ -78,10 +79,12 @@ public class Mapper extends GUI {
     /** for the Articulation Points Algorithm use */
     public static final int INFINITY = Integer.MAX_VALUE;
 
-    /** for challenge */
+    /** Below fields are for challenge */
     static String distanceOrTimeString = "";
 
     static String travelType_category = "";
+
+    List<Restriction> allRestrctions;
 
     /**
      * Set the distanceOrTimeString.
@@ -216,11 +219,16 @@ public class Mapper extends GUI {
     }
 
     @Override
-    protected void onLoad(File nodes, File roads, File segments, File polygons) {
+    protected void onLoad(File nodes, File roads, File segments, File polygons,
+            File restrctionFile) {
         graph = new Graph(nodes, roads, segments, polygons);
         trie = new Trie(graph.roads.values());
         origin = new Location(-250, 250); // close enough
         scale = 1;
+
+        // my code here
+        this.allRestrctions = Restriction.parseRestrictions(restrctionFile);
+
     }
 
     @Override
@@ -301,7 +309,7 @@ public class Mapper extends GUI {
 
                         // this part for checking one way road
                         // and if it's one way whether it's legal
-                        if (!isLegalRoad(currentNode, outgoing_node)) {
+                        if (!isLegalMove(currentNode, outgoing_node)) {
                             // it's not legal, do not offer this into the fringeQueue, jump to
                             // search the next
                             System.out.println("!FIND ILLEGAL ROAD SEGMENT!");
@@ -309,15 +317,21 @@ public class Mapper extends GUI {
 
                         }
 
+                        if (distanceOrTimeString.equalsIgnoreCase("time")) {
+
+                        }
+                        // default is find shortest distance
                         // assign the g(node)
                         double startNodeToNeighbourCost_sofar = fringe_lowest.getCurrent_cost()
                                 + findSegmentWeight(currentNode, outgoing_node);
                         // assign the f(node).
                         // (hint: f(node)=g(node)+h(Node))
                         double total_estimated_cost = startNodeToNeighbourCost_sofar
-                                + outgoing_node.getLocation().distance(targetNode.getLocation());
+                                + outgoing_node.getLocation()
+                                        .distance(targetNode.getLocation());
 
-                        // every argument is ready, offer the new fringe object into the queue
+                        // every argument is ready, offer the new fringe object into the
+                        // queue
                         fringesQueue.offer(new Fringe(outgoing_node, currentNode,
                                 startNodeToNeighbourCost_sofar, total_estimated_cost));
                     }
@@ -356,6 +370,10 @@ public class Mapper extends GUI {
      */
     private double findSegmentWeight(Node startNode, Node targetNode) {
         double weight = Double.POSITIVE_INFINITY;
+        if (distanceOrTimeString.equalsIgnoreCase("time")) {
+
+            return weight;
+        }
 
         // // loop through all the outgoing edges
         // for (Segment seg : startNode.getOutGoingSegments()) {
@@ -391,6 +409,9 @@ public class Mapper extends GUI {
      * If it's one way, then check whether the route segment from currentNode to outgoingNode
      * is legal or not.
      * 
+     * Also, for challeng, take into account the restriction like notforcar, not for bike,not
+     * for walk, etc
+     * 
      * HINT: 1. the currentNode and outgoing node should be adjacent neighbour!
      * <p>
      * 2.If it's one way(i.e. oneway==1), then the allowed direction is from beginning to end!
@@ -403,12 +424,40 @@ public class Mapper extends GUI {
      *            the outgoing node to check
      * @return true if it's legal, false otherwise
      */
-    private boolean isLegalRoad(Node currentNode, Node outgoing_node) {
+    private boolean isLegalMove(Node currentNode, Node outgoing_node) {
         boolean isLegal = true;
 
         for (Segment segment : currentNode.segments) {
             // if this segment is correct segment from startNode to outgoing Node
             if (segment.start.equals(currentNode) && segment.end.equals(outgoing_node)) {
+
+                // for challenge, take into account restrction info
+                if (travelType_category.equalsIgnoreCase("Bike")) {
+                    if (segment.road.notforbicy) {
+                        return false;
+                    }
+                } else if (travelType_category.equalsIgnoreCase("Walk")) {
+                    if (segment.road.notforPeopleWalk) {
+                        return false;
+                    }
+
+                } else if (travelType_category.equalsIgnoreCase("Car")) {
+                    if (segment.road.notforcar) {
+                        return false;
+                    }
+                }
+
+                // check Restrictions.tab
+                // for (Restriction restriction : allRestrctions) {
+                // // if (restriction.getNodeID_1()) {
+                // //
+                // // }
+                //
+                // }
+
+                /*
+                 * now check the one way value
+                 */
                 int onewayValue = segment.road.getOneway();
                 // it's one way, direction from beginning to end
                 // set isLegal to false first

@@ -79,6 +79,7 @@ public class Fringe implements Comparable<Fringe> {
         // set up the childNodes of the first_neighbourNode
         this.setChildNodes_of_firstNeighbourNode(first_neighbourNode.getChildrenNodes());
         // this.childNodes_of_firstNeighbourNode.remove(rootNode);
+
     }
 
     /**

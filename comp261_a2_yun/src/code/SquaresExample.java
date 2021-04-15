@@ -74,7 +74,6 @@ public class SquaresExample extends GUI {
         makeSquares();
     }
 
-    @Override
     protected void onLoad(File nodes, File roads, File segments, File polygons) {
         getTextOutputArea().setText("example doesn't load any files.");
     }
@@ -128,6 +127,13 @@ public class SquaresExample extends GUI {
 
     @Override
     protected void setTravelType(String speed_limit_category) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    protected void onLoad(File nodes, File roads, File segments, File polygons,
+            File restrictionFile) {
         // TODO Auto-generated method stub
 
     }
