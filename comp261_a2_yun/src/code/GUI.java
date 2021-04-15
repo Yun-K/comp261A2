@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GridLayout;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -17,6 +18,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -107,6 +109,15 @@ public abstract class GUI {
      * @author Yun Zhou
      */
     protected abstract void onAPs();
+
+    /**
+     * Set the travelType.
+     *
+     * @param travelType_category
+     *            the speed_limit_category to set
+     */
+    protected abstract void setTravelType(String travelType_category);
+
     // here are some useful methods you'll need.
 
     /**
@@ -163,7 +174,8 @@ public abstract class GUI {
 
     private static final String POLYS_FILENAME = "polygon-shapes.mp";
 
-    private static final String RESTRCTION_FILENAME = "restrctions.tab";
+    /** added by me, for challenge */
+    private static final String RESTRCTION_FILENAME = "restrictions.tab";
 
     /*
      * In Swing, everything is a component; buttons, graphics panes, tool tips, and the window
@@ -213,6 +225,7 @@ public abstract class GUI {
         load.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
                 File nodes = null, roads = null, segments = null, polygons = null;
+                File restrictionFile = null;
 
                 // set up the file chooser
                 fileChooser.setCurrentDirectory(new File("."));
@@ -235,6 +248,8 @@ public abstract class GUI {
                             segments = f;
                         } else if (f.getName().equals(POLYS_FILENAME)) {
                             polygons = f;
+                        } else if (f.getName().equals(RESTRCTION_FILENAME)) {
+                            restrictionFile = f;
                         }
                     }
 
@@ -301,14 +316,21 @@ public abstract class GUI {
         });
 
         JButton aStar = new JButton("A*");
-        aStar.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-                onAStarSearch();
-                redraw();
-            }
-        });
+        aStar.addActionListener((ActionEvent e) -> showDistanceOrTimeDialog());
+        // aStar.addActionListener(new ActionListener() {
+        // public void actionPerformed(ActionEvent ev) {
+        //// onAStarSearch();
+        // int option = JOptionPane.showConfirmDialog(
+        // GUI.this, "Do you want to restart the game? ", "Hint",
+        // JOptionPane.YES_NO_CANCEL_OPTION);
+        // if (option == JOptionPane.YES_OPTION) {
+        // System.out.println("Unexpected Error has occur");
+        // }
+        //// redraw();
+        // }
+        // });
 
-        JButton aPs = new JButton("APts");
+        JButton aPs = new JButton("DistanceOrTime");
         aPs.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
                 onAPs();
@@ -397,6 +419,31 @@ public abstract class GUI {
         controls.add(Box.createRigidArea(new Dimension(5, 0)));
         controls.add(search);
 
+        // 0 = 5km/h
+        // 1 = 20km/h
+        // 2 = 40km/h
+        // 3 = 60km/h
+        // 4 = 80km/h
+        // 5 = 100km/h
+        // 6 = 110km/h
+        // 7 = no limit
+        // try to add the search buttons to select the speed
+        // String[] travelType = { "", "5 km/h", "20 km/h", "40 km/h", "60 km/h", "80 km/h",
+        // "100 km/h", "110 km/h", "no limit" };
+        String[] travelType = { "Please Select Travel Way:", "Walk", "Car", "Bike" };
+        JComboBox<String> travelType_comboBox = new JComboBox<String>(travelType);
+        travelType_comboBox.setMaximumSize(new Dimension(5, 33));
+        travelType_comboBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String travelTypeString = (String) travelType_comboBox.getSelectedItem();
+                if (travelTypeString != null) {
+                    setTravelType(travelTypeString);
+                    redraw();
+                }
+            }
+        });
+        controls.add(travelType_comboBox);
+
         /*
          * then make the drawing canvas, which is really just a boring old JComponent with the
          * paintComponent method overridden to paint whatever we like. this is the easiest way
@@ -469,6 +516,26 @@ public abstract class GUI {
         // always do these two things last, in this order.
         frame.pack();
         frame.setVisible(true);
+    }
+
+    /**
+     * Description: <br/>
+     * The dialog for user to select distance or the time
+     * 
+     * @author Yun Zhou
+     */
+    protected void showDistanceOrTimeDialog() {
+        int option = JOptionPane.showConfirmDialog(
+                frame, "Do you want to select Distance Or Time?\nY for distance,N for Time ",
+                "Hint", JOptionPane.YES_NO_OPTION);
+        if (option == JOptionPane.YES_OPTION) {
+            System.out.println("You select Distance");
+            Mapper.setDistanceOrTimeString("distance");
+
+        } else if (option == JOptionPane.NO_OPTION) {
+            System.out.println("You select Time");
+            Mapper.setDistanceOrTimeString("time");
+        }
     }
 }
 

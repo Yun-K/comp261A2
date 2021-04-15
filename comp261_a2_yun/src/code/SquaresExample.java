@@ -119,6 +119,18 @@ public class SquaresExample extends GUI {
         // TODO Auto-generated method stub
 
     }
+
+    @Override
+    protected void showDistanceOrTimeDialog() {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    protected void setTravelType(String speed_limit_category) {
+        // TODO Auto-generated method stub
+
+    }
 }
 
 // code for COMP261 assignments

@@ -18,19 +18,34 @@ public class Road {
 
     // 0 : both directions allowed
     // 1 : one way road, direction from beginning to end
-    private int oneway;
+    public int oneway;
 
-    private int notforpede;
+    public boolean notforPeopleWalk;
 
-    private int notforbicy;
+    public boolean notforbicy;
 
-    private int roadclass;
+    public boolean notforcar;
 
-    private int notforcar;
+    public int roadclass;
 
-    private int speed;
+    public int speed;
 
-    private String label;
+    public String label;
+
+    // public String[] speedLimitCate = { "5 km/h", "20 km/h", "40 km/h", "60 km/h", "80 km/h",
+    // "100 km/h", "110 km/h", "no limit" };
+
+    public int[] speedLimitCate = { 5, 20, 40, 60, 80, 100, 110, Integer.MAX_VALUE };
+
+    // 0 = Residential
+    // 1 = Collector
+    // 2 = Arterial
+    // 3 = Principal HW
+    // 4 = Major HW
+    public String[] roadClassArray = { "Residential", "Collector", "Arterial", "Principal HW",
+            "Major HW" };
+
+    public String roadClassString;
 
     public Road(int roadID, int type, String label, String city, int oneway,
             int speed, int roadclass, int notforcar, int notforpede,
@@ -41,13 +56,143 @@ public class Road {
         this.components = new LinkedHashSet<Segment>();// change it to LinkedHashSet so that
                                                        // it's ordered and got index
         //
-        this.notforbicy = notforbicy;
-        this.notforpede = notforpede;
-        this.notforcar = notforcar;
-        this.roadclass = roadclass;
-        this.speed = speed;
-        this.label = label;
         this.oneway = oneway;
+        //
+        if (notforbicy == 1) {
+            this.notforbicy = true;
+        } else if (notforbicy == 0) {
+            this.notforbicy = false;
+        }
+        if (notforpede == 1) {
+            this.notforPeopleWalk = true;
+        } else if (notforpede == 0) {
+            this.notforPeopleWalk = false;
+        }
+        if (notforcar == 1) {
+            this.notforcar = true;
+        } else if (notforcar == 0) {
+            this.notforcar = false;
+        }
+        //
+        this.label = label;
+        // assign by the index
+        this.speed = speedLimitCate[speed];
+        this.roadclass = roadclass;
+        this.roadClassString = roadClassArray[roadclass];
+    }
+
+    /**
+     * Get the notforPeopleWalk.
+     *
+     * @return the notforPeopleWalk
+     */
+    public boolean isNotforPeopleWalk() {
+        return notforPeopleWalk;
+    }
+
+    /**
+     * Set the notforPeopleWalk.
+     *
+     * @param notforPeopleWalk
+     *            the notforPeopleWalk to set
+     */
+    public void setNotforPeopleWalk(boolean notforPeopleWalk) {
+        this.notforPeopleWalk = notforPeopleWalk;
+    }
+
+    /**
+     * Get the notforbicy.
+     *
+     * @return the notforbicy
+     */
+    public boolean isNotforbicy() {
+        return notforbicy;
+    }
+
+    /**
+     * Set the notforbicy.
+     *
+     * @param notforbicy
+     *            the notforbicy to set
+     */
+    public void setNotforbicy(boolean notforbicy) {
+        this.notforbicy = notforbicy;
+    }
+
+    /**
+     * Get the notforcar.
+     *
+     * @return the notforcar
+     */
+    public boolean isNotforcar() {
+        return notforcar;
+    }
+
+    /**
+     * Set the notforcar.
+     *
+     * @param notforcar
+     *            the notforcar to set
+     */
+    public void setNotforcar(boolean notforcar) {
+        this.notforcar = notforcar;
+    }
+
+    /**
+     * Get the speedLimitCate.
+     *
+     * @return the speedLimitCate
+     */
+    public int[] getSpeedLimitCate() {
+        return speedLimitCate;
+    }
+
+    /**
+     * Set the speedLimitCate.
+     *
+     * @param speedLimitCate
+     *            the speedLimitCate to set
+     */
+    public void setSpeedLimitCate(int[] speedLimitCate) {
+        this.speedLimitCate = speedLimitCate;
+    }
+
+    /**
+     * Get the roadClassArray.
+     *
+     * @return the roadClassArray
+     */
+    public String[] getRoadClassArray() {
+        return roadClassArray;
+    }
+
+    /**
+     * Set the roadClassArray.
+     *
+     * @param roadClassArray
+     *            the roadClassArray to set
+     */
+    public void setRoadClassArray(String[] roadClassArray) {
+        this.roadClassArray = roadClassArray;
+    }
+
+    /**
+     * Get the roadClassString.
+     *
+     * @return the roadClassString
+     */
+    public String getRoadClassString() {
+        return roadClassString;
+    }
+
+    /**
+     * Set the roadClassString.
+     *
+     * @param roadClassString
+     *            the roadClassString to set
+     */
+    public void setRoadClassString(String roadClassString) {
+        this.roadClassString = roadClassString;
     }
 
     public void addSegment(Segment seg) {
@@ -79,44 +224,6 @@ public class Road {
     }
 
     /**
-     * Get the notforpede.
-     *
-     * @return the notforpede
-     */
-    public int getNotforpede() {
-        return notforpede;
-    }
-
-    /**
-     * Set the notforpede.
-     *
-     * @param notforpede
-     *            the notforpede to set
-     */
-    public void setNotforpede(int notforpede) {
-        this.notforpede = notforpede;
-    }
-
-    /**
-     * Get the notforbicy.
-     *
-     * @return the notforbicy
-     */
-    public int getNotforbicy() {
-        return notforbicy;
-    }
-
-    /**
-     * Set the notforbicy.
-     *
-     * @param notforbicy
-     *            the notforbicy to set
-     */
-    public void setNotforbicy(int notforbicy) {
-        this.notforbicy = notforbicy;
-    }
-
-    /**
      * Get the roadclass.
      *
      * @return the roadclass
@@ -133,25 +240,6 @@ public class Road {
      */
     public void setRoadclass(int roadclass) {
         this.roadclass = roadclass;
-    }
-
-    /**
-     * Get the notforcar.
-     *
-     * @return the notforcar
-     */
-    public int getNotforcar() {
-        return notforcar;
-    }
-
-    /**
-     * Set the notforcar.
-     *
-     * @param notforcar
-     *            the notforcar to set
-     */
-    public void setNotforcar(int notforcar) {
-        this.notforcar = notforcar;
     }
 
     /**

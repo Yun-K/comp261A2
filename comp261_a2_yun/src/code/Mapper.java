@@ -78,6 +78,26 @@ public class Mapper extends GUI {
     /** for the Articulation Points Algorithm use */
     public static final int INFINITY = Integer.MAX_VALUE;
 
+    /** for challenge */
+    static String distanceOrTimeString = "";
+
+    static String travelType_category = "";
+
+    /**
+     * Set the distanceOrTimeString.
+     *
+     * @param distanceOrTimeString
+     *            the distanceOrTimeString to set
+     */
+    public static void setDistanceOrTimeString(String distanceOrTimeString) {
+        Mapper.distanceOrTimeString = distanceOrTimeString;
+    }
+
+    @Override
+    protected void setTravelType(String travelType_category) {
+        Mapper.travelType_category = travelType_category;
+    }
+
     @Override
     protected void redraw(Graphics g) {
         if (graph != null) {
@@ -260,6 +280,24 @@ public class Mapper extends GUI {
                     // for (Node outgoing_node : currentNode.getOutGoingNodes()) {
 
                     if (!outgoing_node.isVisited()) {
+                        //
+                        // // for checking whether ths heuristic function h() is
+                        // // consistent/monotonic
+                        // double h_current = currentNode.getLocation()
+                        // .distance(targetNode.getLocation());
+                        // double h_neigh = outgoing_node.getLocation()
+                        // .distance(targetNode.getLocation());
+                        // double weight_cost = findSegmentWeight(currentNode, outgoing_node);
+                        // if (h_current <= h_neigh + weight_cost) {
+                        // if (h_current - h_neigh <= weight_cost) {
+                        // System.err.println("It is consistent/monotonic!!!!!");
+                        // assert true;
+                        // }
+                        //
+                        // } else {
+                        // System.err.println("It is not consistent/monotonic");
+                        // assert false;
+                        // }
 
                         // this part for checking one way road
                         // and if it's one way whether it's legal
@@ -369,7 +407,7 @@ public class Mapper extends GUI {
         boolean isLegal = true;
 
         for (Segment segment : currentNode.segments) {
-            // if this segment is correct
+            // if this segment is correct segment from startNode to outgoing Node
             if (segment.start.equals(currentNode) && segment.end.equals(outgoing_node)) {
                 int onewayValue = segment.road.getOneway();
                 // it's one way, direction from beginning to end
@@ -532,8 +570,8 @@ public class Mapper extends GUI {
             // for debug, ids are for the large graph since these groups where ids belongs
             // are isolated so that easy to see the result, also these root node with these
             // ids are also the APoint
-            // if (rootNode.getNodeID() != 20839 || rootNode.getNodeID() !=20384 ||
-            // rootNode.getNodeID() !=20206) {
+            // if (rootNode.getNodeID() != 20839 || rootNode.getNodeID() != 20384 ||
+            // rootNode.getNodeID() != 20206) {
             // continue;
             // }
 
@@ -737,6 +775,7 @@ public class Mapper extends GUI {
     public static void main(String[] args) {
         new Mapper();
     }
+
 }
 
 // code for COMP261 assignments
